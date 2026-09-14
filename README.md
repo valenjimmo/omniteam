@@ -1,6 +1,8 @@
 # OmniTeam / OmniAthlete / Attendance
 
-OmniAttendance is the first working module in OmniTeam: a mobile-friendly attendance workflow for swim coaches. The app is deliberately organized around reusable domain logic so future modules such as OmniMeet, OmniVolunteer, and OmniPay can share types, authorization helpers, reporting rules, and UI primitives.
+OmniAthlete is the first module being built in OmniTeam. Its Attendance screen is currently a mobile-friendly prototype for swim coaches; the screen still uses local demo data. The canonical product hierarchy is in `docs/OMNITEAM_STRUCTURE.md`, and the current architecture assessment is in `docs/PRODUCT_STRUCTURE.md`.
+
+The code inventory and add/remove candidates are in `docs/CURRENT_STRUCTURE.md`. Supabase/Vercel setup, test-data purge, and team archival are in `docs/SUPABASE_VERCEL_SETUP.md`.
 
 ## Stack
 
@@ -11,16 +13,16 @@ Next.js App Router, TypeScript, React, Supabase PostgreSQL/Auth/RLS, Vitest, and
 1. Install Node.js 20+ and npm.
 2. Run `npm install`.
 3. Copy `.env.example` to `.env.local` and fill in Supabase values.
-4. Run the migration and seed with the Supabase CLI: `supabase db reset`.
+4. Apply migrations in filename order to the intended Supabase project, following `docs/SUPABASE_VERCEL_SETUP.md`. Use `seed.sql` only for a disposable demo project.
 5. Start the app with `npm run dev`.
 
 Useful checks are `npm run typecheck`, `npm test`, and `npm run build`.
 
 ## Architecture
 
-`src/app` owns routes and composition. `packages/domain` contains product-neutral attendance rules and types; it is intended to become a shared workspace package consumed by every OmniTeam product. Supabase migrations contain the tenant-scoped relational model, and future `src/services/*` modules should be the only place UI code talks to Supabase.
+`src/app` owns routes and composition. `packages/domain` currently contains attendance rules and types. `src/modules/omniathlete` contains the first explicit cross-module contract for OmniSite. Supabase migrations contain the tenant-scoped relational model, and `src/services/*` is the server-side data boundary.
 
-Every business record carries `team_id`. Membership-based RLS uses `is_active_team_member` so a URL or modified request cannot cross tenant boundaries. Swimmers are deactivated rather than deleted, memberships preserve group history, and attendance has an idempotent unique key on `(practice_session_id, swimmer_id)`.
+Every business record carries `team_id`. The OmniAthlete foundation migration adds team module entitlements, families, and composite tenant keys for core athlete relationships. Swimmers are deactivated rather than deleted, memberships preserve group history, and attendance has an idempotent unique key on `(practice_session_id, swimmer_id)`.
 
 ## Attendance rules
 
@@ -28,7 +30,7 @@ Cancelled practice sessions are excluded from eligible practice counts. `calcula
 
 ## Supabase and initial owner
 
-Create the first Auth user in Supabase, insert a profile, then add an `OWNER` row in `team_memberships`. Never expose `SUPABASE_SERVICE_ROLE_KEY` to the browser. Production routes should use `@supabase/ssr` server clients and validate the active team membership before mutations.
+Create the first Auth user in Supabase, insert a profile if needed, then add an `OWNER` row in `team_memberships` through a trusted process. Provision the OmniTeam platform owner separately in `platform_owners`. Never expose `SUPABASE_SERVICE_ROLE_KEY` to the browser. The owner and parent access design is in `docs/ACCESS_MODEL.md`; the multi-tenant requirements are in `docs/TENANT_ISOLATION.md`.
 
 ## Reporting and OmniTeam integration strategy
 

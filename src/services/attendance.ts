@@ -12,6 +12,13 @@ export interface AttendanceUpdate {
 /** Idempotent write boundary shared by coach UI, imports, and future self check-in. */
 export async function upsertAttendance(update: AttendanceUpdate) {
   const supabase = await createSupabaseServerClient();
+  const { data: allowed, error: accessError } = await supabase.rpc("can_access_team_module", {
+    target_team_id: update.teamId,
+    target_module: "omniathlete",
+    required_level: "MANAGE",
+  });
+  if (accessError) throw accessError;
+  if (!allowed) throw new Error("OmniAthlete attendance management access is required for this team.");
   return supabase.from("attendance_records").upsert({
     team_id: update.teamId,
     practice_session_id: update.practiceSessionId,

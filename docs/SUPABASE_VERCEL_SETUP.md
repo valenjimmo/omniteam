@@ -1,0 +1,58 @@
+# Connect OmniTeam to Supabase and Vercel
+
+The checkout is linked locally to the existing `valenjimmos-projects/omniteam` Vercel project. A Preview deployment was created at `https://omniteam-455wq9ajp-valenjimmos-projects.vercel.app`. Vercel lists Supabase variable names for Preview and Production, but the Preview health endpoint currently returns `not_configured`: usable values are not reaching the deployment. The user needs to set the test Supabase URL and anon key for Preview, then redeploy. No live database was changed while preparing these steps.
+
+## 1. Apply the schema
+
+In the intended Supabase project, run the SQL files in `supabase/migrations/` in filename order. Run each file as its own transaction in the Supabase SQL Editor. This matters for `202609140003_parent_role.sql`: PostgreSQL must commit the new `PARENT` enum value before the next migration uses it. Do not run `seed.sql` against a real customer project; it creates demo data.
+
+Use the dedicated test Supabase project for real-data trials. For its project-wide purge, explicitly mark the project as test in `project_maintenance_settings` and mark **every** team `is_test_team = true` through a trusted SQL Editor/service-role operation. The purge refuses to run otherwise.
+
+Create the initial team OWNER membership after creating its Auth user and profile. Provision the OmniTeam platform owner separately by inserting your Auth user ID into `platform_owners` through the SQL Editor. `docs/ACCESS_MODEL.md` explains the scopes. Do not put these IDs or the service-role key in source control.
+
+## 2. Configure the project environment
+
+From Supabase project settings, obtain the project URL and its browser-safe anon/publishable key. Add these exact names to Vercel's Development, Preview, and Production environments as appropriate:
+
+```text
+NEXT_PUBLIC_SUPABASE_URL
+NEXT_PUBLIC_SUPABASE_ANON_KEY
+```
+
+Set the same values in a local `.env.local` for local development. The existing `.gitignore` excludes that file. `SUPABASE_SERVICE_ROLE_KEY` is not needed for the browser pages or the health check. If later used for trusted server administration, keep it server-only and never prefix it with `NEXT_PUBLIC_`.
+
+The local Vercel CLI login and project link are complete. In the existing Vercel project's Environment Variables UI, **replace the current unusable Preview values** with the test project's URL and browser-safe anon key. Use Vercel's Environment Variables UI or `vercel env add` without committing values. Redeploy after changing environment variables. Apply the same check to Production only when its intended Supabase project is ready.
+
+## 3. Configure Supabase Auth
+
+Enable email confirmation for parent sign-up. Set the Supabase Auth Site URL to the deployed application URL. Add the exact deployed callback URL `https://<your-domain>/auth/callback` to the allowed redirect URLs; add any specific preview domain that you intend to test. The registration page sends verification links through this callback, which exchanges the Auth code for a session and returns the parent to the team registration page.
+
+## 4. Verify the connection
+
+Open `https://<your-domain>/api/health/supabase`. `{"status":"ok"}` means the Vercel environment values can reach the migrated Supabase schema. `not_configured` means the variables are missing; `database_unavailable` means the URL/key or schema needs attention. This checks connectivity only, not RLS correctness.
+
+Sign in as a team owner at `/team/access`, choose a unique registration slug, and open registration. Visit `/register/<slug>` as a new parent. After email verification, sign in on that page and submit family/swimmer information. Approve it at `/team/access`, then confirm the parent sees only the approved family at `/my-family`.
+
+The attendance screen at `/attendance` is still a local-data prototype. It is **not** a real-data verification target yet.
+
+## Test-data cleanup
+
+`supabase/scripts/purge_test_team_data.sql` calls a guarded function that clears business records for **all teams** in the dedicated test project while keeping team shells, memberships, module grants, and settings. Before running it, use the test project's actual reference in this setup SQL:
+
+```sql
+insert into public.project_maintenance_settings
+  (singleton, supabase_project_ref, test_project)
+values (true, 'YOUR_TEST_PROJECT_REF', true)
+on conflict (singleton) do update
+  set supabase_project_ref = excluded.supabase_project_ref,
+      test_project = excluded.test_project;
+update public.teams set is_test_team = true;
+```
+
+Run that setup **only in the dedicated test project**. The purge also requires the exact project reference and confirmation phrase in the script. It leaves Auth users/profiles because those identities may be shared across teams, and leaves the team shells so another test cycle can start.
+
+`supabase/scripts/archive_team_account.sql` is the **default account-closure path**. It marks one team unavailable and closes registration while retaining its records pending a retention decision. Active-member and module checks deny ordinary access to the archived team.
+
+`supabase/scripts/delete_team_and_data.sql` is a separate hard-delete maintenance path, **not** the account-closure action. It deletes one team and all current team-owned rows. Direct deletion of a team also has a database cleanup trigger. Shared Auth users/profiles and parent organizations remain. Future modules must add their tables to the cleanup function or use tenant-scoped cascading foreign keys; a missing dependent FK should make deletion fail rather than leave an orphan.
+
+Run `supabase/scripts/preview_test_project_data.sql`, then `supabase/scripts/dry_run_test_project_purge.sql`, and make a backup before the actual project-wide purge. Neither cleanup script is run automatically by deployment.
