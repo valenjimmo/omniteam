@@ -15,8 +15,10 @@ omniteam/
 ├── packages/domain/src/              attendance calculations only
 ├── src/app/
 │   ├── page.tsx                       public OmniTeam landing page (hard-coded cards)
+│   ├── omniathlete/page.tsx            OmniAthlete module home and feature status
 │   ├── attendance/page.tsx            local-data attendance prototype
 │   ├── dashboard/page.tsx             redirects by re-exporting landing page
+│   ├── register/page.tsx              parent team-link entry
 │   ├── register/[slug]/page.tsx       parent application form
 │   ├── my-family/page.tsx             approved guardian family view/contacts
 │   ├── team/access/page.tsx           team owner/admin approval and access UI
@@ -49,7 +51,7 @@ omniteam/
 ## Candidates to add next
 
 1. A real OmniAthlete roster and group UI backed by Supabase, with authenticated team selection and role checks. The current attendance page still uses hard-coded swimmers and only simulates a save.
-2. A single module registry derived from `OMNITEAM_STRUCTURE.md` decisions, plus entitlement-aware navigation. The landing page currently names six of the eight products.
+2. A single module registry derived from `OMNITEAM_STRUCTURE.md` decisions, plus entitlement-aware navigation. The landing page now names all eight products but still hard-codes its catalog.
 3. Real two-team database tests for RLS, foreign keys, parent scope, delegated admin scope, platform support, purge, and team deletion before storing real family data.
 4. Staff invitation, subscription provisioning, rate limits, and notifications for pending parent approvals.
 5. A defined practice-occurrence model so OmniAthlete Attendance works without OmniSchedule.
@@ -59,6 +61,6 @@ omniteam/
 - `/dashboard` currently duplicates `/`. Keep one destination when the authenticated dashboard is implemented.
 - Replace demo data and the simulated “saved” indicator in `/attendance` when real attendance writes are connected.
 - Remove the legacy `OmniAttendance` wording in remaining docs/UI; Attendance belongs to OmniAthlete.
-- Move the hard-coded landing-page module list to a single approved product catalog and add OmniConnect and OmniInsights.
+- Move the hard-coded landing-page module list to a single approved product catalog.
 
 No product modules should be removed from the approved hierarchy based on the current code's incompleteness.
