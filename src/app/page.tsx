@@ -18,7 +18,7 @@ export default function Home() {
     <div className="landing-glow" aria-hidden="true" />
     <header className="landing-header">
       <Link href="/" aria-label="OmniTeam home"><OmniTeamLogo light /></Link>
-      <div className="header-right"><span className="header-status"><span /> One platform. Every part of your team.</span><Link className="header-link" href="/omniathlete">Explore OmniAthlete <ArrowRight size={16} /></Link></div>
+      <div className="header-right"><span className="header-status"><span /> One platform. Every part of your team.</span><Link className="header-link" href="/dashboard">Team dashboard <ArrowRight size={16} /></Link></div>
     </header>
     <section className="landing-hero">
       <div className="hero-copy"><div className="hero-kicker"><span className="kicker-line" /> BUILT FOR THE WHOLE TEAM</div><h1>Everything your<br />team needs, <em>together.</em></h1><p>From the pool deck to meet day and everything in between, OmniTeam brings your people, plans, and progress into one connected home.</p><div className="hero-actions"><Link className="hero-cta" href="/subscribe">Start a team website <ArrowRight size={19} /></Link><a className="hero-secondary" href="#modules">Explore the platform <ChevronRight size={17} /></a></div></div>
@@ -30,6 +30,7 @@ export default function Home() {
         return active ? <Link className="module-card module-card-active" href={name === "OmniSite" ? "/omnisite" : "/omniathlete"} key={name} aria-label={`Explore ${name}`}>{content}</Link> : <div className="module-card module-card-soon" key={name} aria-label={name + ", planned"}>{content}</div>;
       })}</div>
     </section>
+    <section className="pricing-section" id="pricing"><div className="pricing-heading"><p className="section-kicker">START WITH THE MODULES YOU NEED</p><h2>Choose your OmniTeam setup.</h2><p>Try the complete subscription flow without entering payment information. Your selected modules appear on the team dashboard after activation.</p></div><div className="pricing-grid"><article><span>OMNISITE STARTER</span><h3>$29 <small>/ month</small></h3><p>Build and publish a branded team website with templates, pages, team colors, and your logo.</p><ul><li>OmniSite</li><li>30-day simulated trial</li><li>No payment collected</li></ul><Link href="/subscribe">Choose OmniSite <ArrowRight size={17}/></Link></article><article className="pricing-featured"><span>WEBSITE + TEAM MANAGEMENT</span><h3>$59 <small>/ month</small></h3><p>Build the website and connect it to swimmer, family, group, and attendance workflows.</p><ul><li>OmniSite</li><li>OmniAthlete</li><li>30-day simulated trial</li></ul><Link href="/subscribe">Choose the bundle <ArrowRight size={17}/></Link></article></div></section>
     <section className="landing-callout"><div className="callout-icon"><ClipboardCheck size={26} /></div><div><span>BUILDING OMNIATHLETE</span><h2>Start with your people.</h2><p>Explore family registration, team access, and the attendance demo.</p></div><Link href="/omniathlete">Explore OmniAthlete <ArrowRight size={18} /></Link></section>
     <footer className="landing-footer"><OmniTeamLogo light compact /><span>Built for every team, every day.</span><span><Link href="/platform/login">Owner sign in</Link> · © {new Date().getFullYear()} OmniTeam</span></footer>
   </main>;

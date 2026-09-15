@@ -17,12 +17,18 @@ omniteam/
 │   ├── page.tsx                       public OmniTeam landing page (hard-coded cards)
 │   ├── omniathlete/page.tsx            OmniAthlete module home and feature status
 │   ├── attendance/page.tsx            local-data attendance prototype
-│   ├── dashboard/page.tsx             redirects by re-exporting landing page
+│   ├── dashboard/page.tsx             authenticated entitlement-aware team dashboard
+│   ├── subscribe/page.tsx             simulated subscription and team onboarding
 │   ├── register/page.tsx              parent team-link entry
 │   ├── register/[slug]/page.tsx       parent application form
 │   ├── my-family/page.tsx             approved guardian family view/contacts
 │   ├── team/access/page.tsx           team owner/admin approval and access UI
+│   ├── platform/page.tsx              server-protected platform owner dashboard
+│   ├── platform/login/page.tsx        platform-owner sign-in
 │   ├── platform/support/page.tsx      platform-owner support UI
+│   ├── developer/api/page.tsx         administration API entry point
+│   ├── api/admin/purge/route.ts       guarded test-project reset API
+│   ├── api/openapi.json/route.ts      OpenAPI 3.1 specification
 │   ├── auth/callback/route.ts         email verification session exchange
 │   └── api/health/supabase/route.ts   database connection check
 ├── src/modules/omniathlete/           OmniSite data-sharing contract only
@@ -45,20 +51,20 @@ omniteam/
 | OmniVolunteer | Landing card | All volunteer workflows |
 | OmniPay | Landing card | All billing workflows |
 | OmniConnect | No UI | All communication workflows |
-| OmniSite | Landing card and OmniAthlete sharing contract | Website, publishing controls, integration adapter |
+| OmniSite | Templates, branding, page editing, snapshots, public routes, mock subscription provisioning | Live RLS execution, custom domains, News, Events, richer builder controls |
 | OmniInsights | No UI | All analytics workflows |
 
 ## Candidates to add next
 
 1. A real OmniAthlete roster and group UI backed by Supabase, with authenticated team selection and role checks. The current attendance page still uses hard-coded swimmers and only simulates a save.
-2. A single module registry derived from `OMNITEAM_STRUCTURE.md` decisions, plus entitlement-aware navigation. The landing page now names all eight products but still hard-codes its catalog.
+2. Extend the shared module registry and entitlement-aware team dashboard as each planned module gains a real route.
 3. Real two-team database tests for RLS, foreign keys, parent scope, delegated admin scope, platform support, purge, and team deletion before storing real family data.
 4. Staff invitation, subscription provisioning, rate limits, and notifications for pending parent approvals.
 5. A defined practice-occurrence model so OmniAthlete Attendance works without OmniSchedule.
 
 ## Candidates to consolidate or remove
 
-- `/dashboard` currently duplicates `/`. Keep one destination when the authenticated dashboard is implemented.
+- Keep the public module cards and shared dashboard registry synchronized until the landing page also consumes the registry directly.
 - Replace demo data and the simulated “saved” indicator in `/attendance` when real attendance writes are connected.
 - Remove the legacy `OmniAttendance` wording in remaining docs/UI; Attendance belongs to OmniAthlete.
 - Move the hard-coded landing-page module list to a single approved product catalog.
