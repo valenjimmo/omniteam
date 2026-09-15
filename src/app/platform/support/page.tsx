@@ -57,6 +57,7 @@ export default function PlatformSupportPage() {
     <Link href="/" className="registration-brand">Omni<span>Team</span></Link>
     <p className="registration-kicker">PLATFORM OWNER</p>
     <h1>Team support</h1>
+    <p><Link href="/omnisite/templates">Manage OmniSite templates</Link></p>
     {message && <p className="registration-message" role="status">{message}</p>}
     {teams.length > 0 && <section className="access-section">
       <label>Team<select value={teamId} onChange={(e) => { setTeamId(e.target.value); setData([]); }}>

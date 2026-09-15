@@ -16,7 +16,15 @@ The owner's current preference is **one parent login per family**. Additional gu
 
 ## Provisioning
 
-Before use, apply migrations in order. Create the initial team OWNER membership through a trusted process after the Auth user and profile exist. Provision the OmniTeam platform owner through a trusted database/service-role process by inserting the intended Auth user ID into `platform_owners`. Never expose the service-role key in a browser, and never offer public or team-admin writes to `platform_owners`.
+Before use, reconcile and apply migrations according to [DATABASE_CHANGE_WORKFLOW.md](DATABASE_CHANGE_WORKFLOW.md). Create the initial team OWNER membership through a trusted process after the Auth user and profile exist. Provision the OmniTeam platform owner through a trusted database/service-role process by inserting the intended Auth user ID into `platform_owners`. Never expose the service-role key in a browser, and never offer public or team-admin writes to `platform_owners`.
+
+## Platform-owner login
+
+The OmniTeam owner uses an individual Supabase Auth identity in the application's own Supabase project. Store the login credential in Supabase Auth, ordinary contact/profile information in `profiles`, and platform authorization as a trusted `platform_owners.user_id` row. Never hard-code the owner's email, password, user ID, or privileged API key in the repository or Vercel environment variables. The owner's Supabase Dashboard login is a separate administrative identity for managing Supabase itself; it does not automatically grant access inside OmniTeam.
+
+Provide a dedicated platform-owner sign-in route that authenticates through Supabase Auth, then checks server/database authorization before showing the support area. Require MFA for platform-owner support access and enforce its `aal2` assurance level in the database authorization functions, not only the page. Sign-out and session expiry should remove access. For troubleshooting, require the existing reason-recorded, time-limited team support session; do not grant a permanent unrestricted team membership. A team OWNER uses the normal team sign-in and remains scoped to that team.
+
+Current implementation is incomplete: `/platform/support` checks the existing Auth session and can start read-only support sessions, but has no dedicated sign-in/MFA flow or database-side MFA requirement. Do not treat the page alone as the security boundary.
 
 The registration page requires `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_ANON_KEY`. The team owner configures a unique slug and opens registration at `/team/access`. Email confirmation should remain enabled; after verification the applicant returns to the registration page, signs in, and submits the request.
 

@@ -13,3 +13,5 @@ There are two owner concepts: OmniTeam's platform owner has audited, time-limite
 Account closure archives a team and blocks ordinary access by default. Keep retained data isolated. Do not hard-delete team rows or global Auth users as part of account closure; hard deletion is a separate, explicit maintenance operation. Future module tables must be included in test purge and hard-delete behavior.
 
 Before implementing a new module or changing the product hierarchy, confirm its name, ownership, dependencies, and integration behavior against `docs/OMNITEAM_STRUCTURE.md`. Update that file when the owner changes the structure; keep implementation notes in `docs/PRODUCT_STRUCTURE.md`.
+
+For database changes, follow `docs/DATABASE_CHANGE_WORKFLOW.md`. Schema changes belong in tracked migrations; `supabase/scripts/` contains manual operations and must never be batch-run as deployment steps.

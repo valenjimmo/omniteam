@@ -1,10 +1,10 @@
 # Connect OmniTeam to Supabase and Vercel
 
-The checkout is linked locally to the existing `valenjimmos-projects/omniteam` Vercel project. A Preview deployment was created at `https://omniteam-455wq9ajp-valenjimmos-projects.vercel.app`. Vercel lists Supabase variable names for Preview and Production, but the Preview health endpoint currently returns `not_configured`: usable values are not reaching the deployment. The user needs to set the test Supabase URL and anon key for Preview, then redeploy. No live database was changed while preparing these steps.
+The checkout is linked locally to the existing `valenjimmos-projects/omniteam` Vercel project. Production has Supabase URL and anon key configured. Its connection reaches Supabase, but the database is missing registration tables, so the health endpoint reports `database_unavailable`. Preview environment values must be configured separately if Preview is used.
 
 ## 1. Apply the schema
 
-In the intended Supabase project, run the SQL files in `supabase/migrations/` in filename order. Run each file as its own transaction in the Supabase SQL Editor. This matters for `202609140003_parent_role.sql`: PostgreSQL must commit the new `PARENT` enum value before the next migration uses it. Do not run `seed.sql` against a real customer project; it creates demo data.
+Follow [DATABASE_CHANGE_WORKFLOW.md](DATABASE_CHANGE_WORKFLOW.md) to reconcile SQL Editor changes and adopt Supabase CLI migration tracking. Do not blindly replay migrations over an existing schema. Once reconciled, use `supabase migration list` and `supabase db push` for pending migrations. The `202609140003_parent_role.sql` enum change must commit before the next migration uses it. Do not run `seed.sql` against a real customer project; it creates demo data.
 
 Use the dedicated test Supabase project for real-data trials. For its project-wide purge, explicitly mark the project as test in `project_maintenance_settings` and mark **every** team `is_test_team = true` through a trusted SQL Editor/service-role operation. The purge refuses to run otherwise.
 
@@ -21,7 +21,7 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY
 
 Set the same values in a local `.env.local` for local development. The existing `.gitignore` excludes that file. `SUPABASE_SERVICE_ROLE_KEY` is not needed for the browser pages or the health check. If later used for trusted server administration, keep it server-only and never prefix it with `NEXT_PUBLIC_`.
 
-The local Vercel CLI login and project link are complete. In the existing Vercel project's Environment Variables UI, **replace the current unusable Preview values** with the test project's URL and browser-safe anon key. Use Vercel's Environment Variables UI or `vercel env add` without committing values. Redeploy after changing environment variables. Apply the same check to Production only when its intended Supabase project is ready.
+The local Vercel CLI login and project link are complete. Production values are populated. Configure Preview separately in Vercel's Environment Variables UI when needed, and redeploy after changing environment variables.
 
 ## 3. Configure Supabase Auth
 

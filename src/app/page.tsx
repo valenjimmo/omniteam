@@ -9,7 +9,7 @@ const modules = [
   { name: "OmniVolunteer", category: "PEOPLE & HOURS", description: "Coordinate the people who make every event happen.", icon: HeartHandshake },
   { name: "OmniPay", category: "PAYMENTS & BILLING", description: "Give your team a clearer view of fees and payments.", icon: CreditCard },
   { name: "OmniConnect", category: "TEAM COMMUNICATION", description: "Keep families informed through announcements and messages.", icon: BellRing },
-  { name: "OmniSite", category: "YOUR TEAM ONLINE", description: "Give your community a welcoming home on the web.", icon: Globe2 },
+  { name: "OmniSite", category: "YOUR TEAM ONLINE", description: "Choose a template and build your team's website.", icon: Globe2, active: true },
   { name: "OmniInsights", category: "TEAM ANALYTICS", description: "See membership, meet, volunteer, and financial trends.", icon: BarChart3 },
 ];
 
@@ -27,7 +27,7 @@ export default function Home() {
     <section className="platform-section" id="modules"><div className="section-intro"><div><p className="section-kicker">THE OMNITEAM PLATFORM</p><h2>One home. Endless ways<br />to move forward.</h2></div><p>Explore OmniAthlete and the approved eight-module structure. Features are being built in stages.</p></div>
       <div className="modules-grid">{modules.map(({ name, category, description, icon: Icon, active }, index) => {
         const content = <><div className="module-card-top"><span className="module-icon"><Icon size={23} strokeWidth={1.8} /></span><span className="module-number">{String(index + 1).padStart(2, "0")} / {String(modules.length).padStart(2, "0")}</span></div><div className="module-card-body"><span className="module-category">{category}</span><h3>{name}</h3><p>{description}</p></div><div className="module-footer"><span className={active ? "module-ready" : "module-soon"}>{active ? "In development" : "Planned"}</span><span className={active ? "module-arrow" : "module-arrow module-arrow-disabled"}><ArrowRight size={19} /></span></div></>;
-        return active ? <Link className="module-card module-card-active" href="/omniathlete" key={name} aria-label="Explore OmniAthlete">{content}</Link> : <div className="module-card module-card-soon" key={name} aria-label={name + ", planned"}>{content}</div>;
+        return active ? <Link className="module-card module-card-active" href={name === "OmniSite" ? "/omnisite" : "/omniathlete"} key={name} aria-label={`Explore ${name}`}>{content}</Link> : <div className="module-card module-card-soon" key={name} aria-label={name + ", planned"}>{content}</div>;
       })}</div>
     </section>
     <section className="landing-callout"><div className="callout-icon"><ClipboardCheck size={26} /></div><div><span>BUILDING OMNIATHLETE</span><h2>Start with your people.</h2><p>Explore family registration, team access, and the attendance demo.</p></div><Link href="/omniathlete">Explore OmniAthlete <ArrowRight size={18} /></Link></section>

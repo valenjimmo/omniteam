@@ -4,6 +4,7 @@ The canonical module and feature hierarchy is in `OMNITEAM_STRUCTURE.md`. This f
 
 Multi-tenant isolation is a platform-wide requirement. `TENANT_ISOLATION.md` defines the rules every current and future module must follow.
 The role, parent-registration, and two-owner model is recorded in `ACCESS_MODEL.md`.
+The proposed OmniSite implementation and build prompt are in `OMNISITE_DESIGN.md` and `OMNISITE_CODEX_PROMPT.md`.
 
 ## Current implementation against the product tree
 
@@ -15,7 +16,7 @@ The role, parent-registration, and two-owner model is recorded in `ACCESS_MODEL.
 | OmniVolunteer | Landing card only; no feature implementation. |
 | OmniPay | Landing card only; no feature implementation. |
 | OmniConnect | No implementation or landing card. |
-| OmniSite | Landing card only; no feature implementation. |
+| OmniSite | Local first slice: shared template catalog, team branding and draft editor, snapshot publishing, and public site routes. Migration `202609140008_omnisite.sql` has not been applied to a live database; News, Events, custom domains, and rich page-builder controls remain. |
 | OmniInsights | No implementation or landing card. |
 
 The README calls attendance `OmniAttendance`, but the canonical structure places Attendance within OmniAthlete. Use the canonical name and ownership in future work.
