@@ -15,14 +15,15 @@ OmniTeam
 │   ├── Team calendar
 │   └── Events
 ├── OmniMeet (standalone hosted-meet software)
-│   ├── Hosted meet setup
-│   ├── Meet announcement and configuration
-│   ├── Qualifying standards and entry rules
-│   ├── Individual and team entry
-│   ├── Event selection
-│   ├── Entry fees and integrated payment
-│   ├── Refunds and adjustments
-│   └── Entry exports and reports
+│   ├── Online meet registration
+│   │   ├── Hosted meet setup, announcements, and configuration
+│   │   ├── Qualifying standards and entry rules
+│   │   ├── Individual and team entry and event selection
+│   │   ├── Entry fees, integrated payment, refunds, and adjustments
+│   │   └── Entry exports and reports
+│   └── Standalone downloadable meet software
+│       ├── Installed application for meet hosts
+│       └── Integration to receive hosted-meet registration information
 ├── OmniVolunteer
 │   ├── Volunteer jobs
 │   ├── Shifts
@@ -60,7 +61,7 @@ OmniTeam platform capabilities (included where needed; not standalone products)
 └── Audit and platform support
 ```
 
-OmniTeam is the platform. OmniPay is no longer a customer module or standalone SKU; payment capabilities are shared platform infrastructure surfaced by the product that owns the charge. OmniMeet is standalone software for organizations hosting a meet. OmniSite can be purchased alone. Team-management capabilities can integrate with an existing external website, and integrations between purchased products activate only when relevant.
+OmniTeam is the platform. OmniPay is no longer a customer module or standalone SKU; payment capabilities are shared platform infrastructure surfaced by the product that owns the charge. OmniMeet is standalone software for organizations hosting a meet. OmniMeet has two connected features: online registration modeled on the FastSwims meet-entry workflow, and standalone downloadable software that receives information from that registration. Both belong to OmniMeet; this does not define separate products or entitlements. Operating systems, transfer mechanism, and offline behavior remain unspecified. OmniSite can be purchased alone. Team-management capabilities can integrate with an existing external website, and integrations between purchased products activate only when relevant.
 
 Current packaging direction, pending final pricing: **OmniSite** for website-only customers; **OmniTeam Manager** bundling OmniAthlete, OmniSchedule, OmniVolunteer, OmniConnect, and OmniInsights; **OmniMeet Host** for hosted-meet entry workflows; and a **Website + Team Management** bundle. Payment processing is included as a capability where a purchased workflow needs it rather than displayed as a separate product.
 

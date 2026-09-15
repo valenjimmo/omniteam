@@ -13,7 +13,7 @@ The simulated purchase flow is in `SUBSCRIPTION_WORKFLOW.md`; the guarded test r
 | --- | --- |
 | OmniAthlete | Attendance demo UI; swimmers, groups, and families have schema, with parent registration, approval, family view, and contact pages. Full athlete management workflows remain to be built. |
 | OmniSchedule | Practice schedules, sessions, and exceptions have schema only. Pool schedules, team calendar, and events have no implementation. |
-| OmniMeet | Defined as standalone hosted-meet entry software; landing card only. Host configuration, entry rules, online team/individual entries, integrated fees/refunds, and exports remain to be built. |
+| OmniMeet | Public `/omnimeet` overview linked from the homepage explains two planned features: online meet registration and standalone downloadable software that receives registration information. Registration, payments, downloads, and the data integration remain to be built. The overview introduces no operational access paths or new entitlements. |
 | OmniVolunteer | Landing card only; no feature implementation. |
 | OmniConnect | No implementation or landing card. |
 | OmniSite | Local first slice: shared template catalog, team branding and draft editor, snapshot publishing, and public site routes. Platform owners can locally sign in and provision an OmniSite-only team through migration `202609140009`. Migrations have not been applied to a live database; MFA, News, Events, custom domains, and rich page-builder controls remain. |
