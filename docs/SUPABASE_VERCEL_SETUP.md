@@ -19,7 +19,7 @@ NEXT_PUBLIC_SUPABASE_URL
 NEXT_PUBLIC_SUPABASE_ANON_KEY
 ```
 
-Set the same values in a local `.env.local` for local development. The existing `.gitignore` excludes that file. `SUPABASE_SERVICE_ROLE_KEY` is not needed for the browser pages or the health check. If later used for trusted server administration, keep it server-only and never prefix it with `NEXT_PUBLIC_`.
+Set the same values in a local `.env.local` for local development. The existing `.gitignore` excludes that file. `SUPABASE_SERVICE_ROLE_KEY` is not needed for browser pages or the health check, but the guarded `/api/admin/purge` DELETE operation uses it to remove OmniSite files through the Storage API before resetting test tenant data. Configure it in Vercel only as a private, server-only variable and never prefix it with `NEXT_PUBLIC_`.
 
 The local Vercel CLI login and project link are complete. Production values are populated. Configure Preview separately in Vercel's Environment Variables UI when needed, and redeploy after changing environment variables.
 

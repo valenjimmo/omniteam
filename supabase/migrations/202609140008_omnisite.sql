@@ -214,12 +214,16 @@ insert into storage.buckets(id,name,public,file_size_limit,allowed_mime_types)
 values('omnisite-assets','omnisite-assets',true,2097152,array['image/png','image/jpeg','image/webp'])
 on conflict(id) do nothing;
 create policy "omnisite team uploads" on storage.objects for insert to authenticated
-  with check (bucket_id='omnisite-assets' and public.can_manage_omnisite((split_part(name,'/',1))::uuid));
+  with check (bucket_id='omnisite-assets' and array_length(storage.foldername(name),1)=1
+    and public.can_manage_omnisite((split_part(name,'/',1))::uuid));
 create policy "omnisite team edits objects" on storage.objects for update to authenticated
-  using (bucket_id='omnisite-assets' and public.can_manage_omnisite((split_part(name,'/',1))::uuid))
-  with check (bucket_id='omnisite-assets' and public.can_manage_omnisite((split_part(name,'/',1))::uuid));
+  using (bucket_id='omnisite-assets' and array_length(storage.foldername(name),1)=1
+    and public.can_manage_omnisite((split_part(name,'/',1))::uuid))
+  with check (bucket_id='omnisite-assets' and array_length(storage.foldername(name),1)=1
+    and public.can_manage_omnisite((split_part(name,'/',1))::uuid));
 create policy "omnisite team deletes objects" on storage.objects for delete to authenticated
-  using (bucket_id='omnisite-assets' and public.can_manage_omnisite((split_part(name,'/',1))::uuid));
+  using (bucket_id='omnisite-assets' and array_length(storage.foldername(name),1)=1
+    and public.can_manage_omnisite((split_part(name,'/',1))::uuid));
 
 -- Site rows cascade on hard team deletion. Test purges also remove site rows.
 create or replace function public.clear_team_records(target_team_id uuid, include_account_access boolean)

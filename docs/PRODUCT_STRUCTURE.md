@@ -5,6 +5,7 @@ The canonical module and feature hierarchy is in `OMNITEAM_STRUCTURE.md`. This f
 Multi-tenant isolation is a platform-wide requirement. `TENANT_ISOLATION.md` defines the rules every current and future module must follow.
 The role, parent-registration, and two-owner model is recorded in `ACCESS_MODEL.md`.
 The proposed OmniSite implementation and build prompt are in `OMNISITE_DESIGN.md` and `OMNISITE_CODEX_PROMPT.md`.
+The simulated purchase flow is in `SUBSCRIPTION_WORKFLOW.md`; the guarded test reset API is in `ADMIN_API.md`.
 
 ## Current implementation against the product tree
 
@@ -26,7 +27,7 @@ The README calls attendance `OmniAttendance`, but the canonical structure places
 - `src/app/page.tsx` hard-codes six module cards and availability. It omits OmniConnect and OmniInsights.
 - `src/app/attendance/page.tsx` is a local-state demo with fixed swimmers, team, date, and save indicator. It does not call `src/services/attendance.ts`.
 - `packages/domain` currently contains attendance rules only. It is not yet a general platform domain package or a set of independent modules.
-- The new OmniAthlete foundation migration adds team module entitlements and families. A product catalog, billing subscriptions, and bundle provisioning are still absent.
+- The mock subscription migration adds a small product catalog, simulated checkout, subscriptions, and bundle entitlement provisioning. Live billing, provider webhooks, invoices, and cancellation remain absent.
 - Attendance records require a practice session and swimmer; practice sessions require a group. If OmniSchedule is optional, OmniAthlete attendance needs a minimal practice occurrence it can own or an optional scheduling adapter. Decide that boundary before implementing either module.
 - The foundation migration adds OmniAthlete entitlement checks and composite tenant keys to athlete relationships. The tenant-integrity migration adds schedule relationship constraints and immutable tenant keys. Later migrations add team-member module grants, approved parent registration, one family login with multiple guardian contacts, and audited platform-owner support sessions.
 - The attendance upsert service checks the active OmniAthlete entitlement, and database keys constrain swimmer and session to the requested team. The demo UI still does not use the service. Authentication UI, authorized team selection, and persistent save behavior remain to be built.

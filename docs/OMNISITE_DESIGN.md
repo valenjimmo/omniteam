@@ -1,6 +1,6 @@
 # OmniSite design
 
-Status: first implementation slice exists locally, but its migration has not been executed against Supabase. News, Events, custom domains, additional page-builder controls, live database isolation tests, and automated Storage cleanup remain. The canonical feature names remain in [OMNITEAM_STRUCTURE.md](OMNITEAM_STRUCTURE.md). OmniSite is a separately purchasable module; every website belongs to one team.
+Status: first implementation slice exists locally, but its migration has not been executed against Supabase. A mock subscription flow can provision an OmniSite team, and the test reset API removes Storage objects before tenant deletion. News, Events, custom domains, additional page-builder controls, and live database isolation tests remain. The canonical feature names remain in [OMNITEAM_STRUCTURE.md](OMNITEAM_STRUCTURE.md). OmniSite is a separately purchasable module; every website belongs to one team.
 
 ## Goal and user journeys
 

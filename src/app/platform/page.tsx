@@ -67,7 +67,7 @@ export default function PlatformConsolePage() {
         <button type="submit" disabled={busy}>{busy ? "Creating…" : "Create team"}</button>
       </form>
     </section>
-    <section className="access-section"><div className="platform-section-heading"><div><h2>Teams</h2><p>{teams.length} team{teams.length === 1 ? "" : "s"}</p></div><div><Link href="/omnisite">Open OmniSite builder</Link><Link href="/omnisite/templates">Manage templates</Link><Link href="/platform/support">Team support</Link></div></div>
+    <section className="access-section"><div className="platform-section-heading"><div><h2>Teams</h2><p>{teams.length} team{teams.length === 1 ? "" : "s"}</p></div><div><Link href="/omnisite">Open OmniSite builder</Link><Link href="/omnisite/templates">Manage templates</Link><Link href="/platform/support">Team support</Link><Link href="/developer/api">Admin API</Link></div></div>
       {teams.length === 0 ? <p>No teams have been created.</p> : <div className="platform-team-list">{teams.map(team => <article key={team.team_id}><div><strong>{team.team_name}</strong><small>{team.team_id}</small></div><Link href="/omnisite">Build site</Link></article>)}</div>}
     </section>
   </div></main>;

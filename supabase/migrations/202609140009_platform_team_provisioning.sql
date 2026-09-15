@@ -12,6 +12,7 @@ declare
   new_organization_id uuid;
   new_team_id uuid;
   new_membership_id uuid;
+  mark_as_test boolean;
 begin
   if not public.is_platform_owner() then
     raise exception 'Platform owner access required';
@@ -26,11 +27,13 @@ begin
     raise exception 'Platform owner profile is missing';
   end if;
 
+  select coalesce((select test_project from public.project_maintenance_settings where singleton), false)
+    into mark_as_test;
   insert into public.organizations(name)
     values (trim(requested_team_name))
     returning id into new_organization_id;
-  insert into public.teams(organization_id, name, timezone)
-    values (new_organization_id, trim(requested_team_name), trim(requested_timezone))
+  insert into public.teams(organization_id, name, timezone, is_test_team)
+    values (new_organization_id, trim(requested_team_name), trim(requested_timezone), mark_as_test)
     returning id into new_team_id;
   insert into public.team_memberships(team_id, user_id, role, status)
     values (new_team_id, auth.uid(), 'OWNER', 'ACTIVE')
