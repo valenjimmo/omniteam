@@ -8,7 +8,7 @@ Follow [DATABASE_CHANGE_WORKFLOW.md](DATABASE_CHANGE_WORKFLOW.md) to reconcile S
 
 Use the dedicated test Supabase project for real-data trials. For its project-wide purge, explicitly mark the project as test in `project_maintenance_settings` and mark **every** team `is_test_team = true` through a trusted SQL Editor/service-role operation. The purge refuses to run otherwise.
 
-Create the initial team OWNER membership after creating its Auth user and profile. Provision the OmniTeam platform owner separately by inserting your Auth user ID into `platform_owners` through the SQL Editor. `docs/ACCESS_MODEL.md` explains the scopes. Do not put these IDs or the service-role key in source control.
+Create your OmniTeam platform-owner identity under Supabase Dashboard → Authentication → Users. Confirm the email, then edit and run `supabase/scripts/provision_platform_owner.sql` once in the intended project's SQL Editor. The script resolves the Auth user by exact email, requires an existing profile, and inserts its user ID into `platform_owners`. After migration `202609140009_platform_team_provisioning.sql` is applied, sign in at `/platform/login`; `/platform` can create a team, assign you its OWNER membership, and enable OmniSite. Do not put passwords, user IDs, or the service-role key in source control.
 
 ## 2. Configure the project environment
 

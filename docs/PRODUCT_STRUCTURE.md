@@ -16,7 +16,7 @@ The proposed OmniSite implementation and build prompt are in `OMNISITE_DESIGN.md
 | OmniVolunteer | Landing card only; no feature implementation. |
 | OmniPay | Landing card only; no feature implementation. |
 | OmniConnect | No implementation or landing card. |
-| OmniSite | Local first slice: shared template catalog, team branding and draft editor, snapshot publishing, and public site routes. Migration `202609140008_omnisite.sql` has not been applied to a live database; News, Events, custom domains, and rich page-builder controls remain. |
+| OmniSite | Local first slice: shared template catalog, team branding and draft editor, snapshot publishing, and public site routes. Platform owners can locally sign in and provision an OmniSite-only team through migration `202609140009`. Migrations have not been applied to a live database; MFA, News, Events, custom domains, and rich page-builder controls remain. |
 | OmniInsights | No implementation or landing card. |
 
 The README calls attendance `OmniAttendance`, but the canonical structure places Attendance within OmniAthlete. Use the canonical name and ownership in future work.

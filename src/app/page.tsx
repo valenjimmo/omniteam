@@ -31,6 +31,6 @@ export default function Home() {
       })}</div>
     </section>
     <section className="landing-callout"><div className="callout-icon"><ClipboardCheck size={26} /></div><div><span>BUILDING OMNIATHLETE</span><h2>Start with your people.</h2><p>Explore family registration, team access, and the attendance demo.</p></div><Link href="/omniathlete">Explore OmniAthlete <ArrowRight size={18} /></Link></section>
-    <footer className="landing-footer"><OmniTeamLogo light compact /><span>Built for every team, every day.</span><span>© {new Date().getFullYear()} OmniTeam</span></footer>
+    <footer className="landing-footer"><OmniTeamLogo light compact /><span>Built for every team, every day.</span><span><Link href="/platform/login">Owner sign in</Link> · © {new Date().getFullYear()} OmniTeam</span></footer>
   </main>;
 }
