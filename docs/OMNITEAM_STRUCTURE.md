@@ -14,24 +14,21 @@ OmniTeam
 │   ├── Pool schedules
 │   ├── Team calendar
 │   └── Events
-├── OmniMeet
-│   ├── Meet calendar
-│   ├── Meet registration
+├── OmniMeet (standalone hosted-meet software)
+│   ├── Hosted meet setup
+│   ├── Meet announcement and configuration
+│   ├── Qualifying standards and entry rules
+│   ├── Individual and team entry
 │   ├── Event selection
-│   ├── Entry fees
-│   └── Meet entries
+│   ├── Entry fees and integrated payment
+│   ├── Refunds and adjustments
+│   └── Entry exports and reports
 ├── OmniVolunteer
 │   ├── Volunteer jobs
 │   ├── Shifts
 │   ├── Family signups
 │   ├── Hour requirements
 │   └── Service-hour reporting
-├── OmniPay
-│   ├── Membership dues
-│   ├── Meet fees
-│   ├── Invoices
-│   ├── Payments
-│   └── Financial reports
 ├── OmniConnect
 │   ├── Announcements
 │   ├── Email
@@ -50,8 +47,21 @@ OmniTeam
     ├── Meet
     ├── Volunteer
     └── Operational analytics
+
+OmniTeam platform capabilities (included where needed; not standalone products)
+├── Identity, tenancy, roles, and permissions
+├── Subscriptions and module entitlements
+├── Payments and fees
+│   ├── Membership dues
+│   ├── Meet and entry fees
+│   ├── Invoices
+│   ├── Payments, refunds, and adjustments
+│   └── Financial reporting inputs
+└── Audit and platform support
 ```
 
-OmniTeam is the platform. Swim teams may purchase modules individually or as bundles. Each purchased module should remain usable on its own; integrations between modules should activate when the relevant modules are available.
+OmniTeam is the platform. OmniPay is no longer a customer module or standalone SKU; payment capabilities are shared platform infrastructure surfaced by the product that owns the charge. OmniMeet is standalone software for organizations hosting a meet. OmniSite can be purchased alone. Team-management capabilities can integrate with an existing external website, and integrations between purchased products activate only when relevant.
+
+Current packaging direction, pending final pricing: **OmniSite** for website-only customers; **OmniTeam Manager** bundling OmniAthlete, OmniSchedule, OmniVolunteer, OmniConnect, and OmniInsights; **OmniMeet Host** for hosted-meet entry workflows; and a **Website + Team Management** bundle. Payment processing is included as a capability where a purchased workflow needs it rather than displayed as a separate product.
 
 This file defines product ownership, not a required filesystem layout. Architecture and implementation findings live in `PRODUCT_STRUCTURE.md`.

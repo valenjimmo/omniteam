@@ -3,7 +3,6 @@ export const OMNITEAM_MODULES = [
   { key:"omnischedule", name:"OmniSchedule", description:"Practices, pool schedules, calendars, and events", href:"/dashboard", available:false },
   { key:"omnimeet", name:"OmniMeet", description:"Meet registration, selections, fees, and entries", href:"/dashboard", available:false },
   { key:"omnivolunteer", name:"OmniVolunteer", description:"Jobs, shifts, signups, and service hours", href:"/dashboard", available:false },
-  { key:"omnipay", name:"OmniPay", description:"Dues, invoices, payments, and financial reports", href:"/dashboard", available:false },
   { key:"omniconnect", name:"OmniConnect", description:"Announcements, email, SMS, and notifications", href:"/dashboard", available:false },
   { key:"omnisite", name:"OmniSite", description:"Templates, pages, branding, and publishing", href:"/omnisite", available:true },
   { key:"omniinsights", name:"OmniInsights", description:"Membership, financial, meet, and operational analytics", href:"/dashboard", available:false },

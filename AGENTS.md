@@ -2,7 +2,7 @@
 
 Read `docs/OMNITEAM_STRUCTURE.md` before changing product names, routes, feature ownership, or module boundaries. It is the owner's canonical, editable hierarchy. Read `docs/PRODUCT_STRUCTURE.md` for implementation findings and architecture guidance.
 
-OmniTeam is the platform. Swim teams subscribe to individual products or bundles. A module must work when it is the only purchased module, while shared integrations should activate when the relevant modules are available. Do not treat the names currently hard-coded on the landing page as the authoritative product tree or add new module names based on guesses.
+OmniTeam is the platform. Swim teams subscribe to products or bundles. OmniPay is shared platform infrastructure and must never be presented, entitled, or sold as a standalone module. OmniMeet is standalone hosted-meet software. OmniSite can work alone, and team-management products can connect to an external website. Shared integrations activate when the relevant products are available. Do not treat names hard-coded in UI as authoritative or add new module names based on guesses.
 
 Keep shared identity, team tenancy, authorization, and subscription entitlements in platform core. Put module-specific workflows and data ownership behind module boundaries. Enforce entitlements in server-side operations and database access, not just navigation. Preserve team isolation across all relationships.
 

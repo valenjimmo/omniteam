@@ -13,18 +13,19 @@ The simulated purchase flow is in `SUBSCRIPTION_WORKFLOW.md`; the guarded test r
 | --- | --- |
 | OmniAthlete | Attendance demo UI; swimmers, groups, and families have schema, with parent registration, approval, family view, and contact pages. Full athlete management workflows remain to be built. |
 | OmniSchedule | Practice schedules, sessions, and exceptions have schema only. Pool schedules, team calendar, and events have no implementation. |
-| OmniMeet | Landing card only; no feature implementation. |
+| OmniMeet | Defined as standalone hosted-meet entry software; landing card only. Host configuration, entry rules, online team/individual entries, integrated fees/refunds, and exports remain to be built. |
 | OmniVolunteer | Landing card only; no feature implementation. |
-| OmniPay | Landing card only; no feature implementation. |
 | OmniConnect | No implementation or landing card. |
 | OmniSite | Local first slice: shared template catalog, team branding and draft editor, snapshot publishing, and public site routes. Platform owners can locally sign in and provision an OmniSite-only team through migration `202609140009`. Migrations have not been applied to a live database; MFA, News, Events, custom domains, and rich page-builder controls remain. |
 | OmniInsights | No implementation or landing card. |
+
+Payments, fees, invoices, refunds, and financial reporting inputs are shared OmniTeam platform capabilities. They are surfaced inside the workflow that owns the transaction and are not a module entitlement or standalone product.
 
 The README calls attendance `OmniAttendance`, but the canonical structure places Attendance within OmniAthlete. Use the canonical name and ownership in future work.
 
 ## Architecture findings
 
-- `src/app/page.tsx` hard-codes six module cards and availability. It omits OmniConnect and OmniInsights.
+- `src/app/page.tsx` presents the seven customer products and four job-based offers. The shared registry drives authenticated module navigation; the landing content is still maintained separately.
 - `src/app/attendance/page.tsx` is a local-state demo with fixed swimmers, team, date, and save indicator. It does not call `src/services/attendance.ts`.
 - `packages/domain` currently contains attendance rules only. It is not yet a general platform domain package or a set of independent modules.
 - The mock subscription migration adds a small product catalog, simulated checkout, subscriptions, and bundle entitlement provisioning. Live billing, provider webhooks, invoices, and cancellation remain absent.

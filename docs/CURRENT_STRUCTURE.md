@@ -6,7 +6,7 @@ The approved product hierarchy is `OMNITEAM_STRUCTURE.md`. This document is the 
 omniteam/
 ├── AGENTS.md                         Codex guardrails and canonical-doc links
 ├── docs/
-│   ├── OMNITEAM_STRUCTURE.md         approved eight-module product tree
+│   ├── OMNITEAM_STRUCTURE.md         approved products and platform capabilities
 │   ├── PRODUCT_STRUCTURE.md          architecture and implementation status
 │   ├── TENANT_ISOLATION.md           multi-tenant security requirements
 │   ├── ACCESS_MODEL.md               platform/team owners, parents, permissions
@@ -47,12 +47,13 @@ omniteam/
 | --- | --- | --- |
 | OmniAthlete | Family registration/approval, family view, schema for swimmers/groups/attendance, attendance demo | Real-data roster and group CRUD, family editing, attendance UI persistence, reporting, parent account lifecycle |
 | OmniSchedule | Practice tables | Independent scheduling workflows and UI |
-| OmniMeet | Landing card | All meet workflows |
+| OmniMeet | Standalone hosted-meet product definition and landing card | Host configuration, online entry, fees/refunds, exports, and reports |
 | OmniVolunteer | Landing card | All volunteer workflows |
-| OmniPay | Landing card | All billing workflows |
 | OmniConnect | No UI | All communication workflows |
 | OmniSite | Templates, branding, page editing, snapshots, public routes, mock subscription provisioning | Live RLS execution, custom domains, News, Events, richer builder controls |
 | OmniInsights | No UI | All analytics workflows |
+
+Payment and fee handling belongs to OmniTeam platform infrastructure and will appear inside the product workflows that use it. It is not a module or subscription choice.
 
 ## Candidates to add next
 

@@ -25,7 +25,7 @@ begin
   return query
     select t.id,m.module_key,(e.team_id is not null and e.starts_at<=now() and (e.ends_at is null or e.ends_at>now()))
     from public.teams t cross join (values ('omniathlete'),('omnischedule'),('omnimeet'),('omnivolunteer'),
-      ('omnipay'),('omniconnect'),('omnisite'),('omniinsights')) m(module_key)
+      ('omniconnect'),('omnisite'),('omniinsights')) m(module_key)
     left join public.team_module_entitlements e on e.team_id=t.id and e.module_key=m.module_key
     order by t.id,m.module_key;
 end;
@@ -37,7 +37,7 @@ create or replace function public.platform_set_team_module(target_team_id uuid,t
 returns void language plpgsql security definer set search_path=public as $$
 begin
   if not public.is_platform_owner() then raise exception 'Platform owner access required'; end if;
-  if target_module not in ('omniathlete','omnischedule','omnimeet','omnivolunteer','omnipay','omniconnect','omnisite','omniinsights')
+  if target_module not in ('omniathlete','omnischedule','omnimeet','omnivolunteer','omniconnect','omnisite','omniinsights')
     then raise exception 'Unknown OmniTeam module'; end if;
   if not exists(select 1 from public.teams where id=target_team_id) then raise exception 'Team not found'; end if;
   if enable_module then

@@ -25,7 +25,9 @@ The local Vercel CLI login and project link are complete. Production values are 
 
 ## 3. Configure Supabase Auth
 
-Enable email confirmation for parent sign-up. Set the Supabase Auth Site URL to the deployed application URL. Add the exact deployed callback URL `https://<your-domain>/auth/callback` to the allowed redirect URLs; add any specific preview domain that you intend to test. The registration page sends verification links through this callback, which exchanges the Auth code for a session and returns the parent to the team registration page.
+Enable email confirmation. In Supabase Dashboard → Authentication → URL Configuration, set **Site URL** to `https://omniteam-seven.vercel.app`. Add `https://omniteam-seven.vercel.app/auth/callback` to **Redirect URLs**. Keep `http://localhost:3000/auth/callback` only as an additional development redirect, never as the Site URL. In Vercel, set `NEXT_PUBLIC_SITE_URL=https://omniteam-seven.vercel.app` for Production and redeploy.
+
+The app passes an explicit production callback for subscription and family-registration confirmation emails. If a customized Supabase **Confirm signup** email template constructs its own link with `{{ .SiteURL }}`, restore `{{ .ConfirmationURL }}` or use the supported `{{ .RedirectTo }}` value so the explicit callback is honored. Supabase rejects an unlisted `redirectTo` and can fall back to the Site URL, which is why a lingering localhost Site URL sends confirmations locally.
 
 ## 4. Verify the connection
 

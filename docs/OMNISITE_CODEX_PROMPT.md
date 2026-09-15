@@ -1,6 +1,6 @@
 # Codex build prompt: OmniSite
 
-Build OmniSite in this repository according to `docs/OMNISITE_DESIGN.md`. Read `AGENTS.md`, `docs/OMNITEAM_STRUCTURE.md`, `docs/PRODUCT_STRUCTURE.md`, `docs/TENANT_ISOLATION.md`, `docs/ACCESS_MODEL.md`, and `docs/DATABASE_CHANGE_WORKFLOW.md` first. Preserve OmniTeam's eight-module hierarchy and do not rename OmniSite features.
+Build OmniSite in this repository according to `docs/OMNISITE_DESIGN.md`. Read `AGENTS.md`, `docs/OMNITEAM_STRUCTURE.md`, `docs/PRODUCT_STRUCTURE.md`, `docs/TENANT_ISOLATION.md`, `docs/ACCESS_MODEL.md`, and `docs/DATABASE_CHANGE_WORKFLOW.md` first. Preserve OmniTeam's canonical product hierarchy and do not rename OmniSite features. Treat payments as shared platform infrastructure, never as a standalone module.
 
 Implement the first delivery slice end to end, including database migrations, RLS, storage policies, server authorization, template manager, team editor, public renderer, and meaningful tests. OmniSite must work for a team that purchased only OmniSite. Optional OmniAthlete integration may display only approved group information when both entitlements are active. Do not expose swimmer, family, attendance, or payment data on public pages.
 

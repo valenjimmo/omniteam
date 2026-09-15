@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState, type FormEvent } from "react";
 import { useParams } from "next/navigation";
 import { createBrowserClient } from "@supabase/ssr";
 import Link from "next/link";
+import { authCallbackUrl } from "@/lib/site-url";
 
 type RegistrationTeam = { team_id: string; slug: string };
 type SwimmerName = { first_name: string; last_name: string };
@@ -82,7 +83,7 @@ export default function ParentRegistrationPage() {
         const { data, error } = await client.auth.signUp({
           email, password,
           options: { data: { first_name: firstName.trim(), last_name: lastName.trim() },
-            emailRedirectTo: `${window.location.origin}/auth/callback?next=${encodeURIComponent(`/register/${slug}`)}` },
+            emailRedirectTo: authCallbackUrl(`/register/${slug}`) },
         });
         if (error) throw error;
         if (!data.session || !data.user) {

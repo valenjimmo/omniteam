@@ -8,7 +8,7 @@ create table public.subscription_plans (
   active boolean not null default true,
   display_order integer not null default 0,
   created_at timestamptz not null default now(),
-  check (module_keys <@ array['omniathlete','omnischedule','omnimeet','omnivolunteer','omnipay','omniconnect','omnisite','omniinsights']::text[])
+  check (module_keys <@ array['omniathlete','omnischedule','omnimeet','omnivolunteer','omniconnect','omnisite','omniinsights']::text[])
 );
 alter table public.subscription_plans enable row level security;
 create policy "active subscription plans visible" on public.subscription_plans
@@ -16,7 +16,8 @@ create policy "active subscription plans visible" on public.subscription_plans
 
 insert into public.subscription_plans(id,name,description,monthly_price_cents,module_keys,display_order) values
   ('omnisite_starter','OmniSite Starter','Team website, templates, page builder, logo, and team colors.',2900,array['omnisite'],10),
-  ('omnisite_athlete','OmniSite + OmniAthlete','Team website plus swimmers, families, groups, and attendance.',5900,array['omnisite','omniathlete'],20);
+  ('team_manager','OmniTeam Manager','Swimmers, schedules, volunteers, communication, and team insights.',9900,array['omniathlete','omnischedule','omnivolunteer','omniconnect','omniinsights'],20),
+  ('website_manager','Website + Team Management','OmniSite plus the complete OmniTeam Manager bundle.',11900,array['omnisite','omniathlete','omnischedule','omnivolunteer','omniconnect','omniinsights'],30);
 
 create table public.mock_checkout_sessions (
   id uuid primary key default gen_random_uuid(),
