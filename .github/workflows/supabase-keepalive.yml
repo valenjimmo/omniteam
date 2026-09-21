@@ -1,0 +1,38 @@
+name: Supabase daily keep-alive
+
+on:
+  schedule:
+    - cron: '23 16 * * *'
+  workflow_dispatch:
+
+permissions: {}
+
+concurrency:
+  group: supabase-keepalive
+  cancel-in-progress: false
+
+jobs:
+  keepalive:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 2
+    steps:
+      - name: Run one tiny database query
+        shell: bash
+        env:
+          PGHOST: ${{ secrets.SUPABASE_KEEPALIVE_HOST }}
+          PGUSER: ${{ secrets.SUPABASE_KEEPALIVE_USER }}
+          PGPASSWORD: ${{ secrets.SUPABASE_KEEPALIVE_PASSWORD }}
+          PGPORT: '5432'
+          PGDATABASE: postgres
+          PGSSLMODE: require
+          PGCONNECT_TIMEOUT: '15'
+          PGOPTIONS: '-c statement_timeout=10000 -c default_transaction_read_only=on'
+        run: |
+          set -euo pipefail
+          for variable in PGHOST PGUSER PGPASSWORD; do
+            if [[ -z "${!variable}" ]]; then
+              echo "::error::Missing keep-alive connection secret for ${variable}. See docs/SUPABASE_KEEPALIVE.md."
+              exit 1
+            fi
+          done
+          psql --no-psqlrc --no-password --set=ON_ERROR_STOP=1 --tuples-only --no-align --command='SELECT 1;'
