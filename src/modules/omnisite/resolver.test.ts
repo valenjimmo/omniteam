@@ -49,6 +49,15 @@ describe("shared hostname resolver and cache isolation", () => {
     });
     expect(await resolveHostname("unknown.org")).toBeNull();
   });
+  it("allows an exact trusted Vercel app host without allowing private-suffix customer hosts", async () => {
+    setup();
+    vi.stubEnv("NEXT_PUBLIC_SITE_URL", "https://omniteam-seven.vercel.app");
+    expect(await resolveHostname("OMNITEAM-SEVEN.VERCEL.APP.")).toEqual({
+      kind: "platform",
+      host: "omniteam-seven.vercel.app",
+    });
+    expect(await resolveHostname("attacker.vercel.app")).toBeNull();
+  });
   it("rejects poisoned host headers before making database requests", async () => {
     setup();
     expect(await resolveHostname("app.platform.org,evil.org")).toBeNull();
