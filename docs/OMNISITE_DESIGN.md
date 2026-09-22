@@ -1,6 +1,6 @@
 # OmniSite design
 
-Status: first implementation slice exists locally, but its migration has not been executed against Supabase. A mock subscription flow can provision an OmniSite team, and the test reset API removes Storage objects before tenant deletion. News, Events, custom domains, additional page-builder controls, and live database isolation tests remain. The canonical feature names remain in [OMNITEAM_STRUCTURE.md](OMNITEAM_STRUCTURE.md). OmniSite is a separately purchasable module; every website belongs to one team.
+Status: the next local milestone is implemented. The authoritative implementation/operations notes are in [OMNISITE_OPERATIONS.md](OMNISITE_OPERATIONS.md), with [client DNS instructions](OMNISITE_CLIENT_DNS.md). The milestone extends the existing schema with revision-checked editing/publishing, private media, a structured editor, explicit catalog-write authority, and managed/custom-host routing. No remote migrations, DNS, or deployment changes have been made. Local PostgreSQL role tests use a pg_jsonschema shim; full Supabase validation is still required. The canonical hierarchy remains in [OMNITEAM_STRUCTURE.md](OMNITEAM_STRUCTURE.md).
 
 ## Goal and user journeys
 
@@ -44,17 +44,8 @@ Any server function, revalidation job, cache key, image transform, search index,
 
 ## Current implementation notes
 
-Migration `202609140008_omnisite.sql` must be applied only after earlier migrations are reconciled and recorded as described in [DATABASE_CHANGE_WORKFLOW.md](DATABASE_CHANGE_WORKFLOW.md). It creates the initial template catalog and three starter layouts. `/omnisite/templates` is the platform-owner catalog editor; `/omnisite` is the team editor; `/sites/{slug}` renders only a published snapshot. An OmniSite-only team can use these flows. No remote database or Vercel project was changed by this implementation.
+See [OMNISITE_OPERATIONS.md](OMNISITE_OPERATIONS.md) for migration order, trust boundaries, private media and cleanup, domain activation, environment variables, administrator checklist, verification evidence and limitations. The earlier public-bucket workflow is replaced; browser Storage access and direct draft-table writes are revoked by the new migrations.
 
-Logo files use the public `omnisite-assets` bucket. Its URLs are public to anyone who knows them, including before a page is published; do not use it for private documents or photographs. Files must be removed through the Storage API before test purge or hard team deletion. `supabase/scripts/cleanup_omnisite_assets.mjs` previews a team's files by default and requires `--delete` to remove them; the SQL cleanup function refuses to proceed while files remain. This avoids orphaned objects, but automated all-team asset cleanup is still needed.
+The three existing layouts remain code-reviewed renderers. Team editing includes page creation/duplication/reordering/hiding/deletion, all five supported section types, private preview sizes, theme and SEO settings, publication history/rollback, and domain claims. The Text section remains structured plain text. News, Events, contact forms and cross-module feeds are follow-up features, not implicitly published data.
 
-The current editor covers starter-page titles, SEO description, visibility, section text, cards, and adding/reordering/removing supported sections. Full page creation, navigation ordering, image placement, template migration, domain verification, and a guarded public media workflow are later work. Template records can be added without deploying code, but a new renderer/section type still requires code.
-
-`supabase/tests/omnisite_isolation.sql` is a rollback-only database smoke test for cross-team foreign keys, immutable team IDs, unpublished/archived visibility, and template/publication separation. It has not been executed because the local Docker daemon is unavailable and the remote project's migration history is not yet reconciled. Client model tests, typecheck, and build can run without a database; they do not replace live RLS tests with two authenticated teams.
-
-## Decisions still open
-
-- Exact starter layouts and visual direction. The first release can use three neutral, swim-team-oriented layouts and refine them with owner feedback.
-- Whether platform-owned templates may include licensed photos; use original or licensed assets only.
-- Whether team owners may use custom fonts or custom CSS. Default: curated fonts, no arbitrary CSS/JS.
-- Custom domain verification and hosting provider flow; ship the route/domain abstraction now, activate custom domains later.
+The managed root domain is intentionally configurable and unset by default. Custom DNS ownership and hosting-provider readiness are separate states; the manual provider adapter does not make Vercel API or DNS changes.

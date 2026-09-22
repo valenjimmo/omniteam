@@ -4,29 +4,47 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
+    "start": "next start",
     "build": "next build",
-    "lint": "next lint",
+    "lint": "eslint src/modules/omnisite src/app/api/omnisite src/app/omnisite src/app/sites src/middleware.ts",
     "test": "vitest run",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "test:db": "node scripts/test-omnisite-db.mjs",
+    "test:local:integration": "node scripts/test-omnisite-local.mjs",
+    "test:browser": "node scripts/test-omnisite-browser.mjs"
   },
   "dependencies": {
     "@supabase/ssr": "^0.7.0",
     "@supabase/supabase-js": "^2.57.0",
+    "@tailwindcss/postcss": "^4.1.0",
     "clsx": "^2.1.1",
     "lucide-react": "^0.468.0",
     "next": "^15.5.0",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
+    "server-only": "^0.0.1",
+    "sharp": "^0.35.4",
     "tailwindcss": "^4.1.0",
-    "@tailwindcss/postcss": "^4.1.0",
+    "tldts": "^7.4.14",
     "zod": "^4.0.0"
   },
   "devDependencies": {
+    "@axe-core/playwright": "^4.13.0",
+    "@electric-sql/pglite": "^0.5.8",
+    "@playwright/test": "^1.63.0",
     "@types/node": "^22.10.0",
     "@types/react": "^19.0.0",
     "@types/react-dom": "^19.0.0",
+    "esbuild": "^0.28.2",
+    "eslint": "^9.39.5",
+    "eslint-config-next": "^15.5.25",
     "postcss": "^8.5.0",
     "typescript": "^5.7.0",
-    "vitest": "^3.2.0"
+    "vitest": "^4.1.11"
+  },
+  "overrides": {
+    "next": {
+      "postcss": "^8.5.28"
+    }
   }
 }

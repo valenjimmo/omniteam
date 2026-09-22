@@ -33,7 +33,7 @@ export default function OmniAthleteHome() {
       })}</div>
     </section>
     <section className="athlete-tools">
-      <div><Settings2 size={21} /><div><h2>Managing a team?</h2><p>Review family registrations and assign each member's module access.</p></div></div>
+      <div><Settings2 size={21} /><div><h2>Managing a team?</h2><p>Review family registrations and assign each member&apos;s module access.</p></div></div>
       <Link href="/team/access">Team access <ArrowRight size={17} /></Link>
     </section>
     <p className="athlete-note">Registration and family pages need a configured Supabase project. Attendance currently uses sample data and does not save to the database.</p>

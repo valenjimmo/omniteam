@@ -1,3 +1,4 @@
+import { listSiteObjects } from '@/lib/supabase/cleanup-storage';
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { createSupabaseAdminClient, requirePlatformOwner } from "@/lib/supabase/admin-auth";
@@ -38,23 +39,14 @@ export async function DELETE(request: NextRequest) {
 
     const admin = createSupabaseAdminClient();
     let removedAssets = 0;
-    for (;;) {
-      const { data: folders, error: folderError } = await admin.storage.from("omnisite-assets").list("", { limit: 1000 });
-      if (folderError && !/not found/i.test(folderError.message)) throw folderError;
-      const teamFolders = (folders ?? []).filter(folder => !folder.id && /^[0-9a-f-]{36}$/i.test(folder.name));
-      if (!teamFolders.length) break;
-      for (const folder of teamFolders) {
-       for (;;) {
-        const { data: files, error } = await admin.storage.from("omnisite-assets").list(folder.name, { limit: 1000, offset: 0 });
+    const {data: teams, error: teamsError} = await admin.from('teams').select('id,is_test_team');
+    if (teamsError || teams?.some(t => !t.is_test_team)) throw new Error('Test team verification failed');
+    for (const team of teams ?? []) {
+      const paths = await listSiteObjects(admin, team.id);
+      for (let i=0;i<paths.length;i+=1000) {
+        const {error} = await admin.storage.from('omnisite-assets').remove(paths.slice(i,i+1000));
         if (error) throw error;
-        const paths = (files ?? []).filter(file => file.id).map(file => `${folder.name}/${file.name}`);
-        if (paths.length) {
-          const { error: removeError } = await admin.storage.from("omnisite-assets").remove(paths);
-          if (removeError) throw removeError;
-          removedAssets += paths.length;
-        }
-        if (!paths.length || (files ?? []).length < 1000) break;
-       }
+        removedAssets += Math.min(1000,paths.length-i);
       }
     }
     const { data: removedTeams, error: resetError } = await client.rpc("reset_all_test_client_data", {

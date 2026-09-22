@@ -50,7 +50,7 @@ omniteam/
 | OmniMeet | Standalone hosted-meet product definition and landing card | Host configuration, online entry, fees/refunds, exports, and reports |
 | OmniVolunteer | Landing card | All volunteer workflows |
 | OmniConnect | No UI | All communication workflows |
-| OmniSite | Templates, branding, page editing, snapshots, public routes, mock subscription provisioning | Live RLS execution, custom domains, News, Events, richer builder controls |
+| OmniSite | Structured editor, private media, atomic revision checks, catalog authority, public routing, domains, mock provisioning | Full Supabase/provider staging, News, Events, contact forms |
 | OmniInsights | No UI | All analytics workflows |
 
 Payment and fee handling belongs to OmniTeam platform infrastructure and will appear inside the product workflows that use it. It is not a module or subscription choice.
@@ -71,3 +71,18 @@ Payment and fee handling belongs to OmniTeam platform infrastructure and will ap
 - Move the hard-coded landing-page module list to a single approved product catalog.
 
 No product modules should be removed from the approved hierarchy based on the current code's incompleteness.
+
+## OmniSite milestone additions
+
+- `src/modules/omnisite/`: versioned content/public schemas, hostname resolver,
+  renderer, editor CSS, and server authorization/media/domain/public loaders.
+- `src/app/api/omnisite/`: bounded mutation and private/public media endpoints.
+- `src/middleware.ts`: exact hostname routing, no shared page cache, nonce CSP.
+- `src/app/sites/[slug]/`: publication pages, metadata, unavailable state,
+  sitemap and robots endpoints.
+- Migrations `202609220001` through `202609220004`: schema validation, secure
+  operations, domain/media lifecycle, public projection.
+- `scripts/test-omnisite-db.mjs`, `supabase/tests/omnisite_milestone.sql`, and
+  `scripts/test-omnisite-browser.mjs`: disposable role tests and renderer checks.
+
+See `OMNISITE_OPERATIONS.md` for exact validation limits and deployment prerequisites.

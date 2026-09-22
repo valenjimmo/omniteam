@@ -1,4 +1,4 @@
--- Transactional database smoke test. Run only after 202609140008 is applied.
+-- Transactional database smoke test. Run only after all OmniSite migrations are applied.
 -- Rollback prevents persistent test teams/sites.
 begin;
 do $$
@@ -35,12 +35,12 @@ begin
     raise exception 'Unpublished site was public';
   end if;
   insert into public.site_publications(team_id,site_id,version,snapshot)
-    values(a,site_a,1,jsonb_build_object('slug','omnisite-test-a','marker','original'));
+    values(a,site_a,1,public.os_draft(a,site_a));
   update public.team_sites set published_version=1 where id=site_a;
   published:=public.get_public_site('omnisite-test-a');
-  if published->>'marker' <> 'original' then raise exception 'Published site unavailable'; end if;
+  if published->>'siteName' <> 'Site A' then raise exception 'Published site unavailable'; end if;
   update public.site_templates set name='Changed global template' where id=template_id;
-  if public.get_public_site('omnisite-test-a')->>'marker' <> 'original' then
+  if public.get_public_site('omnisite-test-a')->>'siteName' <> 'Site A' then
     raise exception 'Template edit changed published content';
   end if;
   update public.teams set status='INACTIVE' where id=a;

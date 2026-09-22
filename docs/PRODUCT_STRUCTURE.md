@@ -16,7 +16,7 @@ The simulated purchase flow is in `SUBSCRIPTION_WORKFLOW.md`; the guarded test r
 | OmniMeet | Public `/omnimeet` overview linked from the homepage explains two planned features: online meet registration and standalone downloadable software that receives registration information. Registration, payments, downloads, and the data integration remain to be built. The overview introduces no operational access paths or new entitlements. |
 | OmniVolunteer | Landing card only; no feature implementation. |
 | OmniConnect | No implementation or landing card. |
-| OmniSite | Local first slice: shared template catalog, team branding and draft editor, snapshot publishing, and public site routes. Platform owners can locally sign in and provision an OmniSite-only team through migration `202609140009`. Migrations have not been applied to a live database; MFA, News, Events, custom domains, and rich page-builder controls remain. |
+| OmniSite | Local milestone: structured editor, private media delivery, revision-checked draft/publish/rollback, explicit template catalog authority, SEO, and managed/custom-host routing. Domain ownership and manual provider activation are separate. See `OMNISITE_OPERATIONS.md`; local role tests pass with a pg_jsonschema shim, while full Supabase/provider staging remains required. News, Events and contact forms are deferred. |
 | OmniInsights | No implementation or landing card. |
 
 Payments, fees, invoices, refunds, and financial reporting inputs are shared OmniTeam platform capabilities. They are surfaced inside the workflow that owns the transaction and are not a module entitlement or standalone product.

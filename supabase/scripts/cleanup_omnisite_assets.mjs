@@ -10,13 +10,20 @@ if(!teamId || !/^[0-9a-f-]{36}$/i.test(teamId) || !projectRef || !url || !key){
 const host=new URL(url).hostname;
 if(host!==`${projectRef}.supabase.co`){console.error('Project reference does not match Supabase URL.');process.exit(2)}
 const client=createClient(url,key,{auth:{persistSession:false}});
-const paths=[];
-for(let offset=0;;offset+=1000){
- const {data,error}=await client.storage.from('omnisite-assets').list(teamId,{limit:1000,offset});
- if(error)throw error;
- for(const item of data??[]) if(item.id)paths.push(`${teamId}/${item.name}`);
- if((data??[]).length<1000)break;
+async function list(prefix) {
+ const paths=[];
+ for(let offset=0;;offset+=1000){
+  const {data,error}=await client.storage.from('omnisite-assets').list(prefix,{limit:1000,offset});
+  if(error)throw error;
+  for(const item of data??[]) {
+   const path=`${prefix}/${item.name}`;
+   if(item.id)paths.push(path);else paths.push(...await list(path));
+  }
+  if((data??[]).length<1000)break;
+ }
+ return paths;
 }
+const paths=await list(teamId);
 console.log(`${paths.length} OmniSite asset(s) for team ${teamId} in ${projectRef}.`);
 if(!deleting){console.log('Preview only. Add --delete to remove these assets via the Storage API.');process.exit(0)}
 for(let i=0;i<paths.length;i+=1000){
