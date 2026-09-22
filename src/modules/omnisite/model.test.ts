@@ -20,7 +20,7 @@ const home = {
   sections: [{ type: "hero", heading: "Welcome", text: "Swim together" }],
 };
 const base = {
-  schemaVersion: 2,
+  schemaVersion: 3,
   teamId: "00000000-0000-4000-8000-000000000001",
   siteId: "00000000-0000-4000-8000-000000000002",
   slug: "team",
@@ -66,6 +66,20 @@ describe("OmniSite hostile content boundaries", () => {
       },
       { type: "cta", heading: "H", label: "Go", href: "/contact" },
       { type: "cards", heading: "H", items: [{ title: "T", text: "D" }] },
+      {
+        type: "newsList",
+        heading: "News",
+        items: [
+          { title: "Update", summary: "Details", publishedDate: "2026-09-22" },
+        ],
+      },
+      {
+        type: "eventsList",
+        heading: "Events",
+        items: [
+          { title: "Meetup", summary: "Public details", date: "2026-10-01" },
+        ],
+      },
     ];
     for (const s of sections) {
       expect(sectionSchema.safeParse(s).success).toBe(true);
@@ -73,6 +87,81 @@ describe("OmniSite hostile content boundaries", () => {
         sectionSchema.safeParse({ ...s, onClick: "alert(1)" }).success,
       ).toBe(false);
     }
+  });
+  it("accepts only explicit rich-text marks and safe links", () => {
+    const section = {
+      type: "richText",
+      heading: "Story",
+      blocks: [
+        {
+          type: "paragraph",
+          children: [{ text: "Join us", marks: ["bold"], href: "/contact" }],
+        },
+      ],
+    };
+    expect(sectionSchema.safeParse(section).success).toBe(true);
+    expect(
+      sectionSchema.safeParse({
+        ...section,
+        blocks: [
+          { type: "paragraph", children: [{ text: "Bad", marks: ["script"] }] },
+        ],
+      }).success,
+    ).toBe(false);
+    expect(
+      sectionSchema.safeParse({
+        ...section,
+        blocks: [
+          {
+            type: "paragraph",
+            children: [{ text: "Bad", marks: [], href: "javascript:alert(1)" }],
+          },
+        ],
+      }).success,
+    ).toBe(false);
+    expect(
+      sectionSchema.safeParse({
+        ...section,
+        blocks: [
+          {
+            type: "paragraph",
+            children: [{ text: "<script>alert(1)</script>", marks: [] }],
+          },
+        ],
+      }).success,
+    ).toBe(true);
+  });
+  it("validates news and event dates and links", () => {
+    expect(
+      sectionSchema.safeParse({
+        type: "newsList",
+        heading: "News",
+        items: [{ title: "Update", summary: "", publishedDate: "2026-02-30" }],
+      }).success,
+    ).toBe(false);
+    expect(
+      sectionSchema.safeParse({
+        type: "eventsList",
+        heading: "Events",
+        items: [
+          { title: "Meet", summary: "", date: "2026-09-22", time: "25:00" },
+        ],
+      }).success,
+    ).toBe(false);
+    expect(
+      sectionSchema.safeParse({
+        type: "eventsList",
+        heading: "Events",
+        items: [
+          {
+            title: "Meet",
+            summary: "",
+            date: "2026-09-22",
+            href: "http://example.com",
+          },
+        ],
+      }).success,
+    ).toBe(false);
   });
   it("rejects remote images, empty alt, oversized text, and schema downgrade", () => {
     expect(

@@ -54,6 +54,36 @@ const safeLink = z
   .string()
   .max(500)
   .refine(isSafeLink, "Use an HTTPS link or a local page path.");
+const calendarDate = z
+  .string()
+  .regex(/^\d{4}-\d{2}-\d{2}$/)
+  .refine((value) => {
+    const [year, month, day] = value.split("-").map(Number);
+    const date = new Date(Date.UTC(year, month - 1, day));
+    return (
+      date.getUTCFullYear() === year &&
+      date.getUTCMonth() === month - 1 &&
+      date.getUTCDate() === day
+    );
+  }, "Use a real calendar date.");
+const inlineMark = z.enum(["bold", "italic"]);
+export const richTextSpanSchema = z
+  .object({
+    text: z.string().min(1).max(1000),
+    marks: z.array(inlineMark).max(2).default([]),
+    href: safeLink.optional(),
+  })
+  .strict()
+  .superRefine((span, ctx) => {
+    if (new Set(span.marks).size !== span.marks.length)
+      ctx.addIssue({ code: "custom", message: "Do not repeat text marks." });
+  });
+export const richTextBlockSchema = z
+  .object({
+    type: z.literal("paragraph"),
+    children: z.array(richTextSpanSchema).min(1).max(40),
+  })
+  .strict();
 export const objectPath = z
   .string()
   .max(250)
@@ -69,15 +99,18 @@ export const sectionSchema = z.discriminatedUnion("type", [
       text: z.string().max(1000),
     })
     .strict(),
-  // Plain text is intentionally the constrained rich-text representation in this milestone.
   z
     .object({
       type: z.literal("richText"),
       hidden: z.boolean().optional(),
       heading: z.string().max(160),
-      text: z.string().max(5000),
+      text: z.string().max(5000).optional(),
+      blocks: z.array(richTextBlockSchema).min(1).max(30).optional(),
     })
-    .strict(),
+    .strict()
+    .refine((section) => !!section.text !== !!section.blocks, {
+      message: "Use either legacy text or structured blocks.",
+    }),
   z
     .object({
       type: z.literal("image"),
@@ -111,6 +144,51 @@ export const sectionSchema = z.discriminatedUnion("type", [
         )
         .min(1)
         .max(8),
+    })
+    .strict(),
+  z
+    .object({
+      type: z.literal("newsList"),
+      hidden: z.boolean().optional(),
+      heading: z.string().max(160),
+      items: z
+        .array(
+          z
+            .object({
+              title: z.string().min(1).max(120),
+              summary: z.string().max(600),
+              publishedDate: calendarDate,
+              href: safeLink.optional(),
+            })
+            .strict(),
+        )
+        .min(1)
+        .max(12),
+    })
+    .strict(),
+  z
+    .object({
+      type: z.literal("eventsList"),
+      hidden: z.boolean().optional(),
+      heading: z.string().max(160),
+      items: z
+        .array(
+          z
+            .object({
+              title: z.string().min(1).max(120),
+              summary: z.string().max(600),
+              date: calendarDate,
+              time: z
+                .string()
+                .regex(/^([01]\d|2[0-3]):[0-5]\d$/)
+                .optional(),
+              location: z.string().max(160).optional(),
+              href: safeLink.optional(),
+            })
+            .strict(),
+        )
+        .min(1)
+        .max(12),
     })
     .strict(),
 ]);
@@ -154,7 +232,7 @@ export const settingsSchema = z
   .strict();
 export const snapshotSchema = z
   .object({
-    schemaVersion: z.union([z.literal(1), z.literal(2)]),
+    schemaVersion: z.union([z.literal(1), z.literal(2), z.literal(3)]),
     teamId: z.string().uuid(),
     siteId: z.string().uuid(),
     slug: slugSchema,
@@ -251,10 +329,12 @@ const publicSectionSchema = z.discriminatedUnion("type", [
     .strict(),
   sectionSchema.options[3],
   sectionSchema.options[4],
+  sectionSchema.options[5],
+  sectionSchema.options[6],
 ]);
 export const publicSnapshotSchema = z
   .object({
-    schemaVersion: z.union([z.literal(1), z.literal(2)]),
+    schemaVersion: z.union([z.literal(1), z.literal(2), z.literal(3)]),
     slug: slugSchema,
     siteName: z.string().min(1).max(120),
     layout: z.enum(["classic", "bold", "minimal"]),

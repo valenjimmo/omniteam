@@ -219,6 +219,11 @@ then verify asset metadata/references and hosting configuration before enabling.
   templates. Run it with the local variables returned by
   `supabase status -o env`, a production build configured for those local values,
   and the app running at `OMNISITE_TEST_APP_URL`. No remote DB tests were run.
+- Phase 2 adds renderer schema v3 with structured rich text, OmniSite-owned news
+  and public events. `supabase/tests/omnisite_jsonschema.sql` is the real
+  `pg_jsonschema` suite for these shapes and hostile marks. The local integration
+  test also publishes v3 content and reconciles stale `PENDING` media through the
+  authenticated application endpoint.
 - `npm run test:browser` runs Chromium against an isolated renderer fixture, not a
   live Supabase account. Install Playwright Chromium or set `CHROME_PATH` to a local
   Chrome binary. It checks all three layouts, both surfaces, three viewport widths,
@@ -228,8 +233,8 @@ then verify asset metadata/references and hosting configuration before enabling.
   provider/WAF request and bandwidth limits for public pages/media and failed
   authentication; application code does not attempt an unreliable in-memory
   distributed public-IP limiter.
-- News/events feeds, contact forms, inline rich-text formatting, template upgrade
-  merges, automatic provider API attachment, automated domain rechecks, detached
+- External news/events feeds, contact forms, template upgrade merges, automatic
+  provider API attachment, automated domain rechecks, detached
   domain self-service recovery, publication pruning and public CDN media delivery
   are explicitly deferred. No private module data is published.
 

@@ -37,6 +37,12 @@ select pg_temp.denied($q$select public.publish_site_revision(team_id,id,draft_re
 reset role;
 -- Build and save a coherent new draft, then verify stale revisions fail.
 create temp table os_test_draft as select team_id,id,public.os_draft(team_id,id) v from public.team_sites where slug='os-team-a';
+select pg_temp.expect((select public.os_valid_snapshot(jsonb_set(v,'{pages,0,sections}',$json$[
+ {"type":"richText","heading":"Story","blocks":[{"type":"paragraph","children":[{"text":"Safe <script> text","marks":["bold"],"href":"/contact"}]}]},
+ {"type":"newsList","heading":"News","items":[{"title":"Update","summary":"Public news","publishedDate":"2026-09-22","href":"https://example.org/news"}]},
+ {"type":"eventsList","heading":"Events","items":[{"title":"Open house","summary":"Public event","date":"2026-10-01","time":"18:00","location":"Pool","href":"/contact"}]}
+]$json$::jsonb)) from os_test_draft),'v3 structured content passes real JSON schema');
+select pg_temp.expect(not public.os_safe_link('javascript:alert(1)'),'SQL rejects hostile links');
 grant select on os_test_draft to authenticated;
 set local role authenticated;
 select public.save_site_draft(team_id,id,1,jsonb_set(v,'{siteName}','"Updated A"')) from os_test_draft;
@@ -111,6 +117,9 @@ select pg_temp.denied($q$select public.os_domain_operation('10000000-0000-4000-8
 -- Media reservation and ownership. No direct public object policy.
 select public.os_asset_operation('10000000-0000-4000-8000-000000000001',team_id,id,'reserve','50000000-0000-4000-8000-000000000001',100,64,64) from os_test_draft;
 select public.os_asset_operation('10000000-0000-4000-8000-000000000001',team_id,id,'ready','50000000-0000-4000-8000-000000000001') from os_test_draft;
+select public.os_asset_operation('10000000-0000-4000-8000-000000000001',team_id,id,'reserve','50000000-0000-4000-8000-000000000002',100,64,64) from os_test_draft;
+update public.site_assets set created_at=now()-interval '2 hours' where id='50000000-0000-4000-8000-000000000002';
+select pg_temp.expect((select count(*)=1 from public.os_stale_assets('10000000-0000-4000-8000-000000000001',(select team_id from os_test_draft),(select id from os_test_draft))),'stale pending media is reconciled');
 select pg_temp.expect((select not public from storage.buckets where id='omnisite-assets'),'bucket private');
 select pg_temp.denied($q$select public.os_asset_operation('10000000-0000-4000-8000-000000000002',team_id,id,'delete','50000000-0000-4000-8000-000000000001') from os_test_draft$q$);
 -- Platform catalog requires explicit grant, and support mode cannot write.

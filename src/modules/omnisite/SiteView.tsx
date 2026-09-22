@@ -5,6 +5,31 @@ import {
   type SiteSection,
 } from "./model";
 import "./site.css";
+function RichText({
+  section,
+  base,
+}: {
+  section: Extract<SiteSection, { type: "richText" }>;
+  base: string;
+}) {
+  if (!section.blocks) return <p>{section.text}</p>;
+  return section.blocks.map((block, blockIndex) => (
+    <p key={blockIndex}>
+      {block.children.map((span, spanIndex) => {
+        let content: React.ReactNode = span.text;
+        if (span.marks.includes("italic")) content = <em>{content}</em>;
+        if (span.marks.includes("bold")) content = <strong>{content}</strong>;
+        return span.href ? (
+          <a key={spanIndex} href={localHref(span.href, base)}>
+            {content}
+          </a>
+        ) : (
+          <span key={spanIndex}>{content}</span>
+        );
+      })}
+    </p>
+  ));
+}
 function localHref(href: string, base: string) {
   return href.startsWith("/")
     ? `${base}${href === "/home" || href === "/" ? "/" : href}`
@@ -36,7 +61,7 @@ function Section({
     return (
       <section className="os-section">
         <h2>{section.heading}</h2>
-        <p>{section.text}</p>
+        <RichText section={section} base={base} />
       </section>
     );
   if (section.type === "image")
@@ -58,6 +83,54 @@ function Section({
           {section.label}
           <span aria-hidden="true"> ↗</span>
         </a>
+      </section>
+    );
+  if (section.type === "newsList")
+    return (
+      <section className="os-section">
+        <h2>{section.heading}</h2>
+        <div className="os-feed">
+          {section.items.map((item, i) => (
+            <article key={i}>
+              <time dateTime={item.publishedDate}>{item.publishedDate}</time>
+              <h3>
+                {item.href ? (
+                  <a href={localHref(item.href, base)}>{item.title}</a>
+                ) : (
+                  item.title
+                )}
+              </h3>
+              <p>{item.summary}</p>
+            </article>
+          ))}
+        </div>
+      </section>
+    );
+  if (section.type === "eventsList")
+    return (
+      <section className="os-section">
+        <h2>{section.heading}</h2>
+        <div className="os-feed os-events">
+          {section.items.map((item, i) => (
+            <article key={i}>
+              <time
+                dateTime={`${item.date}${item.time ? `T${item.time}` : ""}`}
+              >
+                {item.date}
+                {item.time ? ` · ${item.time}` : ""}
+              </time>
+              <h3>
+                {item.href ? (
+                  <a href={localHref(item.href, base)}>{item.title}</a>
+                ) : (
+                  item.title
+                )}
+              </h3>
+              {item.location && <p className="os-location">{item.location}</p>}
+              <p>{item.summary}</p>
+            </article>
+          ))}
+        </div>
       </section>
     );
   return (

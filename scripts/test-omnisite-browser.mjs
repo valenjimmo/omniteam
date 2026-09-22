@@ -13,7 +13,7 @@ const dir = await mkdtemp(join(tmpdir(), "omnisite-browser-"));
 let browser, server;
 try {
   const entry = `import React from 'react';import {renderToStaticMarkup} from 'react-dom/server';import {SiteView} from ${JSON.stringify(resolve("src/modules/omnisite/SiteView.tsx"))};
- export function render(layout,surface){return renderToStaticMarkup(<SiteView site={{schemaVersion:2,slug:'sample',siteName:'Harbor Swim Club',layout,theme:{primary:'#164e63',secondary:'#ffffff',accent:'#000000',surface},logoPath:null,settings:{typography:'sans',faviconPath:null,socialImagePath:null,seoTitle:'',seoDescription:''},pages:[{slug:'home',title:'Home',visible:true,navOrder:0,seoDescription:'',sections:[{type:'hero',heading:'Find your lane.',text:'A place to grow, together.'},{type:'richText',heading:'Hidden draft section',text:'PRIVATE',hidden:true},{type:'cards',heading:'More than a swim team',items:[{title:'Community',text:'Everyone belongs.'},{title:'Progress',text:'Practice with purpose.'}]},{type:'image',alt:'Our team pool',path:'00000000-0000-4000-8000-000000000001.webp'},{type:'cta',heading:'Join us',label:'Contact the team',href:'/contact'}]},{slug:'contact',title:'Contact',visible:true,navOrder:1,seoDescription:'',sections:[]},{slug:'hidden',title:'Private draft',visible:false,navOrder:2,seoDescription:'',sections:[]}]}}/>);}`;
+ export function render(layout,surface){return renderToStaticMarkup(<SiteView site={{schemaVersion:3,slug:'sample',siteName:'Harbor Swim Club',layout,theme:{primary:'#164e63',secondary:'#ffffff',accent:'#000000',surface},logoPath:null,settings:{typography:'sans',faviconPath:null,socialImagePath:null,seoTitle:'',seoDescription:''},pages:[{slug:'home',title:'Home',visible:true,navOrder:0,seoDescription:'',sections:[{type:'hero',heading:'Find your lane.',text:'A place to grow, together.'},{type:'richText',heading:'Hidden draft section',text:'PRIVATE',hidden:true},{type:'richText',heading:'Our story',blocks:[{type:'paragraph',children:[{text:'Safe and strong',marks:['bold'],href:'/contact'},{text:' <script>hostile</script>',marks:['italic']}]}]},{type:'newsList',heading:'News',items:[{title:'Season update',summary:'Registration is open.',publishedDate:'2026-09-22',href:'https://example.org/news'}]},{type:'eventsList',heading:'Events',items:[{title:'Open house',summary:'Meet the coaches.',date:'2026-10-01',time:'18:00',location:'Community pool',href:'/contact'}]},{type:'cards',heading:'More than a swim team',items:[{title:'Community',text:'Everyone belongs.'},{title:'Progress',text:'Practice with purpose.'}]},{type:'image',alt:'Our team pool',path:'00000000-0000-4000-8000-000000000001.webp'},{type:'cta',heading:'Join us',label:'Contact the team',href:'/contact'}]},{slug:'contact',title:'Contact',visible:true,navOrder:1,seoDescription:'',sections:[]},{slug:'hidden',title:'Private draft',visible:false,navOrder:2,seoDescription:'',sections:[]}]}}/>);}`;
   await build({
     stdin: { contents: entry, loader: "tsx", resolveDir: process.cwd() },
     bundle: true,
@@ -85,6 +85,27 @@ try {
             .getByRole("link", { name: "Contact the team" })
             .getAttribute("href"),
           "/sites/sample/contact",
+        );
+        assert.equal(await page.locator("script").count(), 0);
+        assert.equal(
+          await page
+            .getByText("<script>hostile</script>", { exact: true })
+            .count(),
+          1,
+        );
+        assert.equal(
+          await page
+            .getByRole("link", { name: "Safe and strong" })
+            .getAttribute("href"),
+          "/sites/sample/contact",
+        );
+        assert.equal(
+          await page.getByRole("heading", { name: "Season update" }).count(),
+          1,
+        );
+        assert.equal(
+          await page.getByRole("heading", { name: "Open house" }).count(),
+          1,
         );
         await page.keyboard.press("Tab");
         assert.equal(

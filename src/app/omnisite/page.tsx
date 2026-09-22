@@ -54,7 +54,7 @@ const tabs = [
 ] as const;
 type Tab = (typeof tabs)[number];
 const sample = (t: Template): SiteSnapshot => ({
-  schemaVersion: 2,
+  schemaVersion: 3,
   teamId: "00000000-0000-4000-8000-000000000001",
   siteId: "00000000-0000-4000-8000-000000000002",
   slug: "sample",
@@ -231,7 +231,7 @@ export default function OmniSiteEditor() {
           "Could not load website details. Confirm the OmniSite migrations are applied.",
         );
       const parsed = snapshotSchema.safeParse({
-        schemaVersion: 2,
+        schemaVersion: 3,
         teamId: t,
         siteId: s.id,
         slug: s.slug,
@@ -349,7 +349,16 @@ export default function OmniSiteEditor() {
             text: "A place to grow, together.",
           }
         : type === "richText"
-          ? { type, heading: "Our community", text: "Tell your story." }
+          ? {
+              type,
+              heading: "Our community",
+              blocks: [
+                {
+                  type: "paragraph",
+                  children: [{ text: "Tell your story.", marks: [] }],
+                },
+              ],
+            }
           : type === "cta"
             ? {
                 type,
@@ -359,16 +368,40 @@ export default function OmniSiteEditor() {
               }
             : type === "image"
               ? { type, path: path!, alt: "Describe this image" }
-              : {
-                  type,
-                  heading: "Our programs",
-                  items: [
-                    {
-                      title: "Find your lane",
-                      text: "Introduce your program.",
-                    },
-                  ],
-                };
+              : type === "newsList"
+                ? {
+                    type,
+                    heading: "Team news",
+                    items: [
+                      {
+                        title: "Latest update",
+                        summary: "Share what is happening.",
+                        publishedDate: new Date().toISOString().slice(0, 10),
+                      },
+                    ],
+                  }
+                : type === "eventsList"
+                  ? {
+                      type,
+                      heading: "Upcoming events",
+                      items: [
+                        {
+                          title: "Team event",
+                          summary: "Share public event details.",
+                          date: new Date().toISOString().slice(0, 10),
+                        },
+                      ],
+                    }
+                  : {
+                      type,
+                      heading: "Our programs",
+                      items: [
+                        {
+                          title: "Find your lane",
+                          text: "Introduce your program.",
+                        },
+                      ],
+                    };
     updatePage({ sections: [...current.sections, s] });
   }
   function addPage(duplicate = false) {
@@ -382,7 +415,18 @@ export default function OmniSiteEditor() {
       sections:
         duplicate && current
           ? structuredClone(current.sections)
-          : [{ type: "richText", heading: pageName, text: "" }],
+          : [
+              {
+                type: "richText",
+                heading: pageName,
+                blocks: [
+                  {
+                    type: "paragraph",
+                    children: [{ text: "Start writing.", marks: [] }],
+                  },
+                ],
+              },
+            ],
     });
     if (!parsed.success || draft.pages.some((p) => p.slug === pageSlug)) {
       setMessage(
@@ -799,6 +843,185 @@ export default function OmniSiteEditor() {
                                 />
                               </label>
                             )}
+                            {s.type === "richText" && s.blocks && (
+                              <>
+                                {s.blocks.map((block, blockIndex) => (
+                                  <div className="oe-section" key={blockIndex}>
+                                    <strong>Paragraph {blockIndex + 1}</strong>
+                                    {block.children.map((span, spanIndex) => (
+                                      <div
+                                        className="oe-section"
+                                        key={spanIndex}
+                                      >
+                                        <label>
+                                          Text
+                                          <textarea
+                                            value={span.text}
+                                            maxLength={1000}
+                                            onChange={(e) => {
+                                              const blocks = structuredClone(
+                                                s.blocks!,
+                                              );
+                                              blocks[blockIndex].children[
+                                                spanIndex
+                                              ].text = e.target.value;
+                                              sectionChange(i, {
+                                                ...s,
+                                                blocks,
+                                              });
+                                            }}
+                                          />
+                                        </label>
+                                        <div className="oe-actions">
+                                          {(["bold", "italic"] as const).map(
+                                            (mark) => (
+                                              <label key={mark}>
+                                                <input
+                                                  type="checkbox"
+                                                  checked={span.marks.includes(
+                                                    mark,
+                                                  )}
+                                                  onChange={(e) => {
+                                                    const blocks =
+                                                      structuredClone(
+                                                        s.blocks!,
+                                                      );
+                                                    const marks =
+                                                      blocks[blockIndex]
+                                                        .children[spanIndex]
+                                                        .marks;
+                                                    blocks[blockIndex].children[
+                                                      spanIndex
+                                                    ].marks = e.target.checked
+                                                      ? [...marks, mark]
+                                                      : marks.filter(
+                                                          (value) =>
+                                                            value !== mark,
+                                                        );
+                                                    sectionChange(i, {
+                                                      ...s,
+                                                      blocks,
+                                                    });
+                                                  }}
+                                                />{" "}
+                                                {mark}
+                                              </label>
+                                            ),
+                                          )}
+                                        </div>
+                                        <label>
+                                          Link (optional HTTPS or local path)
+                                          <input
+                                            value={span.href ?? ""}
+                                            maxLength={500}
+                                            onChange={(e) => {
+                                              const blocks = structuredClone(
+                                                s.blocks!,
+                                              );
+                                              const next =
+                                                blocks[blockIndex].children[
+                                                  spanIndex
+                                                ];
+                                              if (e.target.value)
+                                                next.href = e.target.value;
+                                              else delete next.href;
+                                              sectionChange(i, {
+                                                ...s,
+                                                blocks,
+                                              });
+                                            }}
+                                          />
+                                        </label>
+                                        <button
+                                          disabled={block.children.length === 1}
+                                          onClick={() =>
+                                            sectionChange(i, {
+                                              ...s,
+                                              blocks: s.blocks!.map(
+                                                (value, n) =>
+                                                  n === blockIndex
+                                                    ? {
+                                                        ...value,
+                                                        children:
+                                                          value.children.filter(
+                                                            (_, j) =>
+                                                              j !== spanIndex,
+                                                          ),
+                                                      }
+                                                    : value,
+                                              ),
+                                            })
+                                          }
+                                        >
+                                          Remove text run
+                                        </button>
+                                      </div>
+                                    ))}
+                                    <div className="oe-actions">
+                                      <button
+                                        disabled={block.children.length >= 40}
+                                        onClick={() =>
+                                          sectionChange(i, {
+                                            ...s,
+                                            blocks: s.blocks!.map((value, n) =>
+                                              n === blockIndex
+                                                ? {
+                                                    ...value,
+                                                    children: [
+                                                      ...value.children,
+                                                      {
+                                                        text: "New text",
+                                                        marks: [],
+                                                      },
+                                                    ],
+                                                  }
+                                                : value,
+                                            ),
+                                          })
+                                        }
+                                      >
+                                        Add text run
+                                      </button>
+                                      <button
+                                        disabled={s.blocks!.length === 1}
+                                        onClick={() =>
+                                          sectionChange(i, {
+                                            ...s,
+                                            blocks: s.blocks!.filter(
+                                              (_, n) => n !== blockIndex,
+                                            ),
+                                          })
+                                        }
+                                      >
+                                        Remove paragraph
+                                      </button>
+                                    </div>
+                                  </div>
+                                ))}
+                                <button
+                                  disabled={s.blocks.length >= 30}
+                                  onClick={() =>
+                                    sectionChange(i, {
+                                      ...s,
+                                      blocks: [
+                                        ...s.blocks!,
+                                        {
+                                          type: "paragraph",
+                                          children: [
+                                            {
+                                              text: "New paragraph",
+                                              marks: [],
+                                            },
+                                          ],
+                                        },
+                                      ],
+                                    })
+                                  }
+                                >
+                                  Add paragraph
+                                </button>
+                              </>
+                            )}
                             {s.type === "cta" && (
                               <>
                                 <label>
@@ -921,6 +1144,200 @@ export default function OmniSiteEditor() {
                                 </button>
                               </>
                             )}
+                            {(s.type === "newsList" ||
+                              s.type === "eventsList") && (
+                              <>
+                                {s.items.map((item, n) => (
+                                  <div className="oe-section" key={n}>
+                                    <label>
+                                      Title
+                                      <input
+                                        value={item.title}
+                                        maxLength={120}
+                                        onChange={(e) =>
+                                          sectionChange(i, {
+                                            ...s,
+                                            items: s.items.map((x, j) =>
+                                              j === n
+                                                ? {
+                                                    ...x,
+                                                    title: e.target.value,
+                                                  }
+                                                : x,
+                                            ),
+                                          } as SiteSection)
+                                        }
+                                      />
+                                    </label>
+                                    <label>
+                                      Summary
+                                      <textarea
+                                        value={item.summary}
+                                        maxLength={600}
+                                        onChange={(e) =>
+                                          sectionChange(i, {
+                                            ...s,
+                                            items: s.items.map((x, j) =>
+                                              j === n
+                                                ? {
+                                                    ...x,
+                                                    summary: e.target.value,
+                                                  }
+                                                : x,
+                                            ),
+                                          } as SiteSection)
+                                        }
+                                      />
+                                    </label>
+                                    <label>
+                                      {s.type === "newsList"
+                                        ? "Published date"
+                                        : "Event date"}
+                                      <input
+                                        type="date"
+                                        value={
+                                          "publishedDate" in item
+                                            ? item.publishedDate
+                                            : item.date
+                                        }
+                                        onChange={(e) =>
+                                          sectionChange(i, {
+                                            ...s,
+                                            items: s.items.map((x, j) =>
+                                              j === n
+                                                ? {
+                                                    ...x,
+                                                    ...(s.type === "newsList"
+                                                      ? {
+                                                          publishedDate:
+                                                            e.target.value,
+                                                        }
+                                                      : {
+                                                          date: e.target.value,
+                                                        }),
+                                                  }
+                                                : x,
+                                            ),
+                                          } as SiteSection)
+                                        }
+                                      />
+                                    </label>
+                                    {s.type === "eventsList" &&
+                                      "date" in item && (
+                                        <>
+                                          <label>
+                                            Time (optional)
+                                            <input
+                                              type="time"
+                                              value={item.time ?? ""}
+                                              onChange={(e) =>
+                                                sectionChange(i, {
+                                                  ...s,
+                                                  items: s.items.map((x, j) =>
+                                                    j === n
+                                                      ? {
+                                                          ...x,
+                                                          time:
+                                                            e.target.value ||
+                                                            undefined,
+                                                        }
+                                                      : x,
+                                                  ),
+                                                })
+                                              }
+                                            />
+                                          </label>
+                                          <label>
+                                            Location (optional)
+                                            <input
+                                              value={item.location ?? ""}
+                                              maxLength={160}
+                                              onChange={(e) =>
+                                                sectionChange(i, {
+                                                  ...s,
+                                                  items: s.items.map((x, j) =>
+                                                    j === n
+                                                      ? {
+                                                          ...x,
+                                                          location:
+                                                            e.target.value ||
+                                                            undefined,
+                                                        }
+                                                      : x,
+                                                  ),
+                                                })
+                                              }
+                                            />
+                                          </label>
+                                        </>
+                                      )}
+                                    <label>
+                                      Link (optional HTTPS or local path)
+                                      <input
+                                        value={item.href ?? ""}
+                                        maxLength={500}
+                                        onChange={(e) =>
+                                          sectionChange(i, {
+                                            ...s,
+                                            items: s.items.map((x, j) =>
+                                              j === n
+                                                ? {
+                                                    ...x,
+                                                    href:
+                                                      e.target.value ||
+                                                      undefined,
+                                                  }
+                                                : x,
+                                            ),
+                                          } as SiteSection)
+                                        }
+                                      />
+                                    </label>
+                                    <button
+                                      disabled={s.items.length === 1}
+                                      onClick={() =>
+                                        sectionChange(i, {
+                                          ...s,
+                                          items: s.items.filter(
+                                            (_, j) => j !== n,
+                                          ),
+                                        } as SiteSection)
+                                      }
+                                    >
+                                      Remove item
+                                    </button>
+                                  </div>
+                                ))}
+                                <button
+                                  disabled={s.items.length >= 12}
+                                  onClick={() =>
+                                    sectionChange(i, {
+                                      ...s,
+                                      items: [
+                                        ...s.items,
+                                        s.type === "newsList"
+                                          ? {
+                                              title: "News item",
+                                              summary: "",
+                                              publishedDate: new Date()
+                                                .toISOString()
+                                                .slice(0, 10),
+                                            }
+                                          : {
+                                              title: "Event",
+                                              summary: "",
+                                              date: new Date()
+                                                .toISOString()
+                                                .slice(0, 10),
+                                            },
+                                      ],
+                                    } as SiteSection)
+                                  }
+                                >
+                                  Add item
+                                </button>
+                              </>
+                            )}
                           </div>
                         ))}
                         <div className="oe-actions">
@@ -931,6 +1348,8 @@ export default function OmniSiteEditor() {
                               "image",
                               "cta",
                               "cards",
+                              "newsList",
+                              "eventsList",
                             ] as const
                           ).map((t) => (
                             <button
@@ -944,7 +1363,14 @@ export default function OmniSiteEditor() {
                               }
                               onClick={() => addSection(t)}
                             >
-                              + {t === "richText" ? "Text" : t}
+                              +{" "}
+                              {t === "richText"
+                                ? "Rich text"
+                                : t === "newsList"
+                                  ? "News"
+                                  : t === "eventsList"
+                                    ? "Events"
+                                    : t}
                             </button>
                           ))}
                         </div>
@@ -1172,6 +1598,28 @@ export default function OmniSiteEditor() {
                       }}
                     />
                   </label>
+                  <button
+                    disabled={!manage || busy}
+                    onClick={() =>
+                      void perform(async () => {
+                        const r = await fetch(
+                          `/api/omnisite/media?teamId=${teamId}&siteId=${draft.siteId}`,
+                          {
+                            method: "PATCH",
+                            headers: await authHeaders(),
+                          },
+                        );
+                        const result = await r.json();
+                        if (!r.ok) throw new Error(result.error);
+                        await refreshMedia(teamId, draft.siteId);
+                        setMessage(
+                          `${result.data.removed} abandoned media item${result.data.removed === 1 ? "" : "s"} removed.`,
+                        );
+                      })
+                    }
+                  >
+                    Clean abandoned uploads
+                  </button>
                 </div>
                 <div className="oe-grid">
                   {assets.map((a, i) => (

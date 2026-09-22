@@ -132,6 +132,38 @@ export async function DELETE(request: Request) {
     return apiError(e);
   }
 }
+export async function PATCH(request: Request) {
+  try {
+    const u = new URL(request.url),
+      t = z.string().uuid().parse(u.searchParams.get("teamId")),
+      s = z.string().uuid().parse(u.searchParams.get("siteId"));
+    const { userId } = await siteAccess(request, t, true, "write");
+    const admin = createSupabaseAdminClient();
+    const stale = await admin.rpc("os_stale_assets", { actor: userId, t, s });
+    if (stale.error) throw stale.error;
+    let removed = 0;
+    for (const asset of stale.data ?? []) {
+      const storage = await admin.storage
+        .from("omnisite-assets")
+        .remove([asset.object_path]);
+      if (storage.error) continue;
+      const done = await admin.rpc("os_asset_operation", {
+        actor: userId,
+        t,
+        s,
+        operation: "removed",
+        asset_id: asset.id,
+      });
+      if (!done.error) removed++;
+    }
+    return Response.json(
+      { data: { removed } },
+      { headers: { "Cache-Control": "private, no-store" } },
+    );
+  } catch (e) {
+    return apiError(e);
+  }
+}
 export async function GET(request: Request) {
   try {
     const u = new URL(request.url),

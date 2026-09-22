@@ -107,7 +107,7 @@ try {
   assert.ifError(siteRow.error);
   assert.ifError(pages.error);
   const snapshot = {
-    schemaVersion: 2,
+    schemaVersion: 3,
     teamId,
     siteId,
     slug: siteRow.data.slug,
@@ -232,6 +232,44 @@ try {
     .eq("id", siteId)
     .single();
   const draftPages = structuredClone(snapshot.pages);
+  draftPages[0].sections.push(
+    {
+      type: "richText",
+      heading: "Our story",
+      blocks: [
+        {
+          type: "paragraph",
+          children: [
+            { text: "Join the team", marks: ["bold"], href: "/contact" },
+          ],
+        },
+      ],
+    },
+    {
+      type: "newsList",
+      heading: "News",
+      items: [
+        {
+          title: "Season update",
+          summary: "Registration is open.",
+          publishedDate: "2026-09-22",
+        },
+      ],
+    },
+    {
+      type: "eventsList",
+      heading: "Events",
+      items: [
+        {
+          title: "Open house",
+          summary: "Meet the coaches.",
+          date: "2026-10-01",
+          time: "18:00",
+          location: "Community pool",
+        },
+      ],
+    },
+  );
   draftPages[0].sections.push({
     type: "image",
     alt: "Local integration image",
@@ -293,6 +331,40 @@ try {
     "deleted unused object must not remain in Storage",
   );
 
+  const abandonedId = crypto.randomUUID();
+  const abandonedPath = `${teamId}/${siteId}/${abandonedId}.webp`;
+  assert.ifError(
+    (
+      await admin.storage
+        .from("omnisite-assets")
+        .upload(abandonedPath, png, { contentType: "image/webp" })
+    ).error,
+  );
+  assert.ifError(
+    (
+      await admin.from("site_assets").insert({
+        id: abandonedId,
+        team_id: teamId,
+        site_id: siteId,
+        object_path: abandonedPath,
+        mime_type: "image/webp",
+        bytes: png.length,
+        state: "PENDING",
+        created_at: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
+      })
+    ).error,
+  );
+  const reconciled = await fetch(
+    `${appUrl}/api/omnisite/media?teamId=${teamId}&siteId=${siteId}`,
+    { method: "PATCH", headers: { Authorization: `Bearer ${token}` } },
+  );
+  await assertStatus(reconciled, 200);
+  assert.equal((await reconciled.json()).data.removed, 1);
+  assert(
+    (await admin.storage.from("omnisite-assets").download(abandonedPath)).error,
+    "reconciled object must not remain in Storage",
+  );
+
   const blockedPurge = await admin.rpc("clear_team_records", {
     target_team_id: teamId,
     include_account_access: false,
@@ -328,7 +400,7 @@ try {
   );
   assert((await admin.auth.admin.getUserById(userId)).data.user);
   console.log(
-    "PASS: real local Auth/RLS concurrency, private Storage, controlled preview/public media, deletion, purge, hard-delete, template preservation, and Auth-user preservation.",
+    "PASS: real local Auth/RLS concurrency, private Storage, controlled preview/public media, deletion, stale-media reconciliation, purge, hard-delete, template preservation, and Auth-user preservation.",
   );
 } finally {
   if (objectPaths.length) {
