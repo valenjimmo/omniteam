@@ -32,4 +32,40 @@ The current connection check found `organizations`, `teams`, `swimmers`, and `fa
 
 Do not make routine remote schema changes through the Dashboard SQL/Table Editor after adopting this workflow; that bypasses CLI history. If an emergency edit is necessary, capture and reconcile it before the next push. Never run `supabase db reset` against a remote project.
 
+## Manual SQL Editor deployment
+
+When CLI access is unavailable, generate a tracked SQL Editor bundle from one
+unchanged migration file:
+
+```bash
+npm run migration:manual -- supabase/migrations/202609220001_omnisite_schema.sql
+```
+
+The command writes `.manual-deploy/<migration>.deploy.sql`. Review it, select the
+intended Supabase project, and run the entire file once in the SQL Editor. The
+bundle executes the migration and records its version, name, original SQL, and
+SHA-256 checksum in the standard `supabase_migrations.schema_migrations` ledger
+and the companion `supabase_migrations.manual_deployments` audit table. It runs
+in one transaction and rejects an existing version or checksum mismatch.
+
+Deploy files individually in filename order. Never combine files, edit the
+generated bundle, rerun an applied bundle, or mark a partially applied migration
+as complete. Generated bundles are ignored by Git; the source migration remains
+the authoritative reviewed file.
+
+For a migration that was completely applied before tracking existed, first audit
+every statement and dependency. Only after that verification, generate a
+record-only bundle:
+
+```bash
+npm run migration:manual -- supabase/migrations/<file>.sql --record-existing --verified
+```
+
+This mode does not execute the migration SQL. It is equivalent in intent to
+`supabase migration repair --status applied` and must never be used based only on
+the presence of one table or function. Run
+`supabase/scripts/manual_migration_history.sql` in the SQL Editor to inspect the
+ledger. Once CLI access is restored, `supabase migration list --linked` must show
+the same versions before returning to `supabase db push`.
+
 For a quick read-only view in the SQL Editor, run the history query above. A missing history table means the CLI has not established tracking; it does **not** mean the database has no schema.
