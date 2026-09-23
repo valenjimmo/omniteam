@@ -9,7 +9,7 @@ rejects `aal1`. Each owner must use an individual account and keep its documente
 recovery process outside the application repository. Removing or resetting a factor is a
 Supabase Auth administrator action and must be recorded in the incident log.
 
-The daily `Production operations` GitHub workflow performs three controls:
+The daily Vercel Cron route `/api/cron/production-operations` performs three controls:
 
 1. It removes Storage objects and metadata for asset rows left in `PENDING` or
    `DELETING` for more than two hours. It never removes a `READY` asset.
@@ -18,13 +18,12 @@ The daily `Production operations` GitHub workflow performs three controls:
 3. It emits a structured production snapshot and runs public authentication,
    error-route, and security-header smoke checks.
 
-Configure repository secrets `PRODUCTION_SUPABASE_URL` and
-`PRODUCTION_SUPABASE_SERVICE_ROLE_KEY`. Configure variable
-`PRODUCTION_SMOKE_URL`; optionally set `PRODUCTION_SMOKE_SITE_SLUG` to a stable
-published test site. Protect workflow changes with required review. GitHub Actions
-failure notifications are the initial alert channel; the on-call release owner
-must subscribe to failed-workflow notifications. JSON lines in the job log and
-`security_events` are the structured evidence. Retain security events for at
+Configure Vercel's server-only `SUPABASE_SERVICE_ROLE_KEY` and `CRON_SECRET`.
+Vercel sends the cron bearer secret and records non-2xx runs; the on-call release
+owner must subscribe to Vercel function/cron failure notifications. The manually
+dispatched `Production operations` GitHub workflow is a second runner after its
+documented repository secrets and smoke variables are configured. JSON lines in
+provider logs and `security_events` are the structured evidence. Retain events for at
 least 180 days and review critical events at the start of each business day.
 
 Publication snapshots are immutable and retained indefinitely by default so a

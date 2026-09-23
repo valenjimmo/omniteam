@@ -6,7 +6,7 @@
     "dev": "next dev",
     "start": "next start",
     "build": "next build",
-    "lint": "eslint src/modules/omnisite src/app/api/omnisite src/app/omnisite src/app/sites src/app/platform src/middleware.ts scripts/*.mjs",
+    "lint": "eslint src/modules/omnisite src/app/api src/app/omnisite src/app/sites src/app/platform src/middleware.ts scripts/*.mjs",
     "test": "vitest run",
     "typecheck": "tsc --noEmit",
     "test:db": "node scripts/test-omnisite-db.mjs",
