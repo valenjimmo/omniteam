@@ -27,6 +27,7 @@ export default function PlatformMfaPage() {
   const [factorId, setFactorId] = useState("");
   const [qr, setQr] = useState("");
   const [secret, setSecret] = useState("");
+  const [setupUri, setSetupUri] = useState("");
   const [code, setCode] = useState("");
   const [busy, setBusy] = useState(true);
   const [message, setMessage] = useState("Checking your security settings…");
@@ -57,6 +58,7 @@ export default function PlatformMfaPage() {
         setFactorId(enrollment.data.id);
         setQr(qrBlobUrl(enrollment.data.totp.qr_code));
         setSecret(enrollment.data.totp.secret);
+        setSetupUri(enrollment.data.totp.uri);
         setMessage("Scan the QR code, then enter the six-digit code to finish enrollment.");
       }
       setBusy(false);
@@ -80,7 +82,13 @@ export default function PlatformMfaPage() {
     <p className="registration-kicker">PLATFORM OWNER SECURITY</p>
     <h1>Two-step verification</h1>
     <p className="registration-intro">Platform access requires a time-based code from your authenticator app.</p>
-    {qr && <div><img src={qr} alt="Authenticator enrollment QR code" width={220} height={220}/><p>Manual key: <code>{secret}</code></p></div>}
+    {qr && <div>
+      <p><strong>Microsoft Authenticator:</strong> choose <em>Other account</em>, then <em>Scan QR code</em>.</p>
+      <p><strong>Google Authenticator:</strong> choose <em>Add a code</em>, then <em>Scan a QR code</em>.</p>
+      <img src={qr} alt="Authenticator enrollment QR code" width={220} height={220}/>
+      <p>If the authenticator is on this device, <a href={setupUri}>open the setup directly</a>.</p>
+      <p>Manual key: <code>{secret}</code> <button type="button" className="registration-toggle" onClick={async () => { await navigator.clipboard.writeText(secret); setMessage("Manual setup key copied. Choose time-based/TOTP when adding it."); }}>Copy key</button></p>
+    </div>}
     <form onSubmit={verify}>
       <label>Six-digit code<input inputMode="numeric" autoComplete="one-time-code" pattern="[0-9]{6}" maxLength={6} required value={code} onChange={event => setCode(event.target.value.replace(/\D/g, ""))}/></label>
       <button type="submit" disabled={busy || !factorId}>{busy ? "Checking…" : "Verify and continue"}</button>
