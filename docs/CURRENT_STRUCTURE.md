@@ -46,10 +46,10 @@ omniteam/
 | Product | Implemented now | Main missing pieces |
 | --- | --- | --- |
 | OmniAthlete | Family registration/approval, family view, schema for swimmers/groups/attendance, attendance demo | Real-data roster and group CRUD, family editing, attendance UI persistence, reporting, parent account lifecycle |
-| OmniSchedule | Practice tables | Independent scheduling workflows and UI |
+| OmniSchedule (within OmniAthlete) | Practice tables | Integrated scheduling workflows and UI |
 | OmniMeet | Standalone hosted-meet product definition and landing card | Host configuration, online entry, fees/refunds, exports, and reports |
-| OmniVolunteer | Landing card | All volunteer workflows |
-| OmniConnect | No UI | All communication workflows |
+| OmniVolunteer (within OmniAthlete) | No dedicated UI | Integrated volunteer workflows |
+| OmniConnect (within OmniAthlete) | No UI | Integrated communication workflows |
 | OmniSite | Structured editor, private media, atomic revision checks, catalog authority, public routing, domains, mock provisioning | Full Supabase/provider staging, News, Events, contact forms |
 | OmniInsights | No UI | All analytics workflows |
 

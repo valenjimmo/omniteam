@@ -34,7 +34,7 @@ Create the first Auth user in Supabase, insert a profile if needed, then add an 
 
 ## Reporting and OmniTeam integration strategy
 
-Reporting should query sessions and attendance through a shared report service, then feed the same result into print, CSV, XLSX, and PDF adapters. The stable UUIDs map cleanly into OmniTeam core entities: `organizations` and `teams` remain platform entities, `swimmers` and `group_memberships` map to OmniAthlete, `practice_schedules` and `practice_sessions` map to OmniSchedule, and `attendance_records` remains the OmniAthlete attendance event ledger. `external_id` supports import reconciliation. Audit logs should remain append-only during migration.
+Reporting should query sessions and attendance through a shared report service, then feed the same result into print, CSV, XLSX, and PDF adapters. The stable UUIDs map cleanly into OmniTeam core entities: `organizations` and `teams` remain platform entities; `swimmers`, `group_memberships`, `practice_schedules`, `practice_sessions`, and `attendance_records` belong to OmniAthlete, with scheduling kept as an internal capability boundary. `external_id` supports import reconciliation. Audit logs should remain append-only during migration.
 
 ## Future work
 
