@@ -7,6 +7,16 @@ import { useRouter } from "next/navigation";
 
 type TotpFactor = { id: string; status: string; friendly_name?: string };
 
+function qrBlobUrl(dataUrl: string) {
+  const [header, encoded] = dataUrl.split(",", 2);
+  if (!header?.startsWith("data:image/") || !encoded) throw new Error("Authenticator QR code was invalid.");
+  const mime = header.match(/^data:([^;]+)/)?.[1] ?? "image/svg+xml";
+  const bytes = header.includes(";base64")
+    ? Uint8Array.from(atob(encoded), character => character.charCodeAt(0))
+    : new TextEncoder().encode(decodeURIComponent(encoded));
+  return URL.createObjectURL(new Blob([bytes], { type: mime }));
+}
+
 export default function PlatformMfaPage() {
   const router = useRouter();
   const client = useMemo(() => {
@@ -20,6 +30,10 @@ export default function PlatformMfaPage() {
   const [code, setCode] = useState("");
   const [busy, setBusy] = useState(true);
   const [message, setMessage] = useState("Checking your security settings…");
+
+  useEffect(() => {
+    return () => { if (qr.startsWith("blob:")) URL.revokeObjectURL(qr); };
+  }, [qr]);
 
   useEffect(() => {
     async function prepare() {
@@ -36,10 +50,12 @@ export default function PlatformMfaPage() {
         setFactorId(verified.id);
         setMessage("Enter the current code from your authenticator app.");
       } else {
+        const incomplete = factors.data?.all.filter(factor => factor.factor_type === "totp" && factor.status !== "verified") ?? [];
+        for (const factor of incomplete) await client.auth.mfa.unenroll({ factorId: factor.id });
         const enrollment = await client.auth.mfa.enroll({ factorType: "totp", friendlyName: "OmniTeam platform owner" });
         if (enrollment.error) { setMessage(enrollment.error.message); setBusy(false); return; }
         setFactorId(enrollment.data.id);
-        setQr(enrollment.data.totp.qr_code);
+        setQr(qrBlobUrl(enrollment.data.totp.qr_code));
         setSecret(enrollment.data.totp.secret);
         setMessage("Scan the QR code, then enter the six-digit code to finish enrollment.");
       }
