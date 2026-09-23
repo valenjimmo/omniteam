@@ -1,12 +1,13 @@
 import Link from "next/link";
+import Image from "next/image";
 import { ArrowRight, BarChart3, ChevronRight, ClipboardCheck, Globe2, Medal, Users } from "lucide-react";
 import { OmniTeamLogo } from "./omniteam-logo";
 
 const modules = [
-  { name: "OmniAthlete", category: "COMPLETE TEAM MANAGEMENT", description: "Manage swimmers, families, attendance, schedules, volunteers, and team communication in one integrated home.", icon: Users, active: true },
-  { name: "OmniMeet", category: "HOSTED MEET SOFTWARE", description: "Online meet registration connected to standalone, downloadable meet software.", icon: Medal, active: true },
-  { name: "OmniSite", category: "YOUR TEAM ONLINE", description: "Choose a template and build your team's website.", icon: Globe2, active: true },
-  { name: "OmniInsights", category: "TEAM ANALYTICS", description: "See membership, meet, volunteer, and financial trends.", icon: BarChart3 },
+  { name: "OmniAthlete", category: "COMPLETE TEAM MANAGEMENT", description: "Manage swimmers, families, attendance, schedules, volunteers, and team communication in one integrated home.", icon: Users, artwork: "/images/modules/omniathlete.webp", active: true },
+  { name: "OmniMeet", category: "HOSTED MEET SOFTWARE", description: "Online meet registration connected to standalone, downloadable meet software.", icon: Medal, artwork: "/images/modules/omnimeet.webp", active: true },
+  { name: "OmniSite", category: "YOUR TEAM ONLINE", description: "Choose a template and build your team's website.", icon: Globe2, artwork: "/images/modules/omnisite.webp", active: true },
+  { name: "OmniInsights", category: "TEAM ANALYTICS", description: "See membership, meet, volunteer, and financial trends.", icon: BarChart3, artwork: "/images/modules/omniinsights.webp" },
 ];
 
 export default function Home() {
@@ -21,8 +22,8 @@ export default function Home() {
       <div className="hero-art" aria-hidden="true"><div className="orbit orbit-one" /><div className="orbit orbit-two" /><div className="orbit orbit-three" /><div className="hero-art-core"><svg viewBox="0 0 64 64" fill="none"><path d="M32 5.5 55 18.75v26.5L32 58.5 9 45.25v-26.5L32 5.5Z" stroke="currentColor" strokeWidth="2"/><path d="M20 25.5 32 18l12 7.5v13L32 46l-12-7.5v-13Z" fill="currentColor"/><path d="M32 18v28M20 25.5l24 13M44 25.5 20 38.5" stroke="#102b32" strokeWidth="3"/></svg></div><span className="orbit-dot dot-a" /><span className="orbit-dot dot-b" /><span className="orbit-dot dot-c" /><span className="art-label label-one">ONE TEAM</span><span className="art-label label-two">EVERY MOMENT</span></div>
     </section>
     <section className="platform-section" id="modules"><div className="section-intro"><div><p className="section-kicker">THE OMNITEAM PLATFORM</p><h2>One home. Endless ways<br />to move forward.</h2></div><p>Explore four customer products supported by shared identity, security, subscriptions, and payments. OmniAthlete includes scheduling, volunteering, and communication.</p></div>
-      <div className="modules-grid">{modules.map(({ name, category, description, icon: Icon, active }, index) => {
-        const content = <><div className="module-card-top"><span className="module-icon"><Icon size={23} strokeWidth={1.8} /></span><span className="module-number">{String(index + 1).padStart(2, "0")} / {String(modules.length).padStart(2, "0")}</span></div><div className="module-card-body"><span className="module-category">{category}</span><h3>{name}</h3><p>{description}</p></div><div className="module-footer"><span className={active ? "module-ready" : "module-soon"}>{active ? "In development" : "Planned"}</span><span className={active ? "module-arrow" : "module-arrow module-arrow-disabled"}><ArrowRight size={19} /></span></div></>;
+      <div className="modules-grid">{modules.map(({ name, category, description, icon: Icon, artwork, active }, index) => {
+        const content = <><Image className="module-art" src={artwork} alt="" width={480} height={320} aria-hidden="true" /><div className="module-card-top"><span className="module-icon"><Icon size={23} strokeWidth={1.8} /></span><span className="module-number">{String(index + 1).padStart(2, "0")} / {String(modules.length).padStart(2, "0")}</span></div><div className="module-card-body"><span className="module-category">{category}</span><h3>{name}</h3><p>{description}</p></div><div className="module-footer"><span className={active ? "module-ready" : "module-soon"}>{active ? "In development" : "Planned"}</span><span className={active ? "module-arrow" : "module-arrow module-arrow-disabled"}><ArrowRight size={19} /></span></div></>;
         return active ? <Link className="module-card module-card-active" href={name === "OmniSite" ? "/omnisite" : name === "OmniMeet" ? "/omnimeet" : "/omniathlete"} key={name} aria-label={`Explore ${name}`}>{content}</Link> : <div className="module-card module-card-soon" key={name} aria-label={name + ", planned"}>{content}</div>;
       })}</div>
     </section>
