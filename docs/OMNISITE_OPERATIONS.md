@@ -224,6 +224,14 @@ then verify asset metadata/references and hosting configuration before enabling.
   `pg_jsonschema` suite for these shapes and hostile marks. The local integration
   test also publishes v3 content and reconciles stale `PENDING` media through the
   authenticated application endpoint.
+- Phase 3 was run against the explicitly marked test project
+  `pasfnxtnhytzpiexkjvk`. Remote migration history and schema matched a clean
+  shadow build, all rollback SQL suites passed, and `npm run test:staging`
+  exercised four real Auth identities, checkout provisioning, editing, private
+  media, preview/publication/rollback, cross-team denials, lifecycle failures,
+  incompatible snapshots, authenticated responsive/keyboard/confirmation/error
+  UX, axe checks, database and Storage recovery, purge, and hard deletion. The
+  suite removes its teams, Storage objects, and Auth users after each run.
 - `npm run test:browser` runs Chromium against an isolated renderer fixture, not a
   live Supabase account. Install Playwright Chromium or set `CHROME_PATH` to a local
   Chrome binary. It checks all three layouts, both surfaces, three viewport widths,

@@ -11,6 +11,7 @@
     "typecheck": "tsc --noEmit",
     "test:db": "node scripts/test-omnisite-db.mjs",
     "test:local:integration": "node scripts/test-omnisite-local.mjs",
+    "test:staging": "node scripts/test-omnisite-staging.mjs",
     "test:browser": "node scripts/test-omnisite-browser.mjs",
     "migration:manual": "node scripts/prepare-manual-migration.mjs",
     "migration:fresh-baseline": "node scripts/prepare-fresh-baseline.mjs",
