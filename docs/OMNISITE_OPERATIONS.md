@@ -242,9 +242,11 @@ then verify asset metadata/references and hosting configuration before enabling.
   authentication; application code does not attempt an unreliable in-memory
   distributed public-IP limiter.
 - External news/events feeds, contact forms, template upgrade merges, automatic
-  provider API attachment, automated domain rechecks, detached
-  domain self-service recovery, publication pruning and public CDN media delivery
-  are explicitly deferred. No private module data is published.
+  provider API attachment, detached domain self-service recovery, publication
+  pruning and public CDN media delivery are explicitly deferred. The production
+  operations workflow performs periodic ownership rechecks and stale asset
+  reconciliation under `PRODUCTION_READINESS.md`. No private module data is
+  published.
 
 Primary technical references: [Supabase JSON schema validation](https://supabase.com/docs/guides/database/extensions/pg_jsonschema),
 [Next.js CSP](https://nextjs.org/docs/app/guides/content-security-policy).

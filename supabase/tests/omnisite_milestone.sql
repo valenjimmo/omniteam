@@ -125,6 +125,13 @@ select pg_temp.denied($q$select public.os_asset_operation('10000000-0000-4000-80
 -- Platform catalog requires explicit grant, and support mode cannot write.
 insert into public.platform_owners(user_id) values('10000000-0000-4000-8000-000000000004');
 select set_config('request.jwt.claim.sub','10000000-0000-4000-8000-000000000004',true);
+select pg_temp.expect(public.is_platform_owner_identity() and not public.is_platform_owner(),'password-only owner is denied privileged access');
+select set_config('request.jwt.claims','{"sub":"10000000-0000-4000-8000-000000000004","role":"authenticated","aal":"aal2"}',true);
+select pg_temp.expect(public.is_platform_owner(),'aal2 owner receives privileged access');
+set local role authenticated;
+select pg_temp.denied($q$select public.record_security_event('test_event','INFO','{}'::jsonb)$q$);
+select pg_temp.denied($q$select * from public.security_events$q$);
+reset role;
 select pg_temp.expect(not public.can_write_site_catalog(),'owner alone is not catalog writer');
 insert into public.site_catalog_writers(user_id) values('10000000-0000-4000-8000-000000000004');
 select pg_temp.expect(public.can_write_site_catalog(),'explicit catalog writer');

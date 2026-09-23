@@ -22,8 +22,8 @@ export default function PlatformLoginPage() {
       if (!client) { setMessage("Supabase is not configured."); return; }
       const { data } = await client.auth.getUser();
       if (!data.user) return;
-      const { data: isOwner } = await client.rpc("is_platform_owner");
-      if (isOwner) router.replace("/platform");
+      const { data: isOwner } = await client.rpc("is_platform_owner_identity");
+      if (isOwner) router.replace("/platform/mfa");
     }
     void checkSession();
   }, [client, router]);
@@ -34,14 +34,14 @@ export default function PlatformLoginPage() {
     setBusy(true);
     const { error } = await client.auth.signInWithPassword({ email: email.trim(), password });
     if (error) { setMessage(error.message); setBusy(false); return; }
-    const { data: isOwner, error: ownerError } = await client.rpc("is_platform_owner");
+    const { data: isOwner, error: ownerError } = await client.rpc("is_platform_owner_identity");
     if (ownerError || !isOwner) {
       await client.auth.signOut();
       setMessage("This account is not provisioned as an OmniTeam platform owner.");
       setBusy(false);
       return;
     }
-    router.replace("/platform");
+    router.replace("/platform/mfa");
     router.refresh();
   }
 

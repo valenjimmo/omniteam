@@ -1,0 +1,35 @@
+name: Production operations
+
+on:
+  schedule:
+    - cron: '41 15 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: production-operations
+  cancel-in-progress: false
+
+jobs:
+  reconcile-and-review:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci
+      - name: Reconcile assets, review domains, and emit security snapshot
+        env:
+          SUPABASE_URL: ${{ secrets.PRODUCTION_SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.PRODUCTION_SUPABASE_SERVICE_ROLE_KEY }}
+        run: npm run operations:production
+      - name: Production smoke test
+        env:
+          PRODUCTION_SMOKE_URL: ${{ vars.PRODUCTION_SMOKE_URL }}
+          PRODUCTION_SMOKE_SITE_SLUG: ${{ vars.PRODUCTION_SMOKE_SITE_SLUG }}
+        run: npm run smoke:production
