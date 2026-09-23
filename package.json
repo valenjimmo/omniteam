@@ -12,7 +12,10 @@
     "test:db": "node scripts/test-omnisite-db.mjs",
     "test:local:integration": "node scripts/test-omnisite-local.mjs",
     "test:browser": "node scripts/test-omnisite-browser.mjs",
-    "migration:manual": "node scripts/prepare-manual-migration.mjs"
+    "migration:manual": "node scripts/prepare-manual-migration.mjs",
+    "migration:fresh-baseline": "node scripts/prepare-fresh-baseline.mjs",
+    "supabase:deploy": "node scripts/run-supabase-workflow.mjs deploy",
+    "supabase:reset": "node scripts/run-supabase-workflow.mjs reset"
   },
   "dependencies": {
     "@supabase/ssr": "^0.7.0",
@@ -40,6 +43,7 @@
     "eslint": "^9.39.5",
     "eslint-config-next": "^15.5.25",
     "postcss": "^8.5.0",
+    "supabase": "^2.117.0",
     "typescript": "^5.7.0",
     "vitest": "^4.1.11"
   },

@@ -53,6 +53,88 @@ generated bundle, rerun an applied bundle, or mark a partially applied migration
 as complete. Generated bundles are ignored by Git; the source migration remains
 the authoritative reviewed file.
 
+## Fresh baseline and uncertain partial deployment
+
+Do not make the 18 historical migrations independently idempotent by adding
+`CREATE IF NOT EXISTS` everywhere. PostgreSQL does not provide that form for
+policies, triggers, constraints, or types, and later migrations intentionally
+replace objects created by earlier migrations. A blanket rewrite can therefore
+silently leave an incomplete or incompatible schema.
+
+For a genuinely empty/new Supabase project, generate one ordered baseline:
+
+```bash
+npm run migration:fresh-baseline
+```
+
+The generated `.manual-deploy/omniteam_fresh_baseline.sql` runs every canonical
+migration in filename order, with one transaction per file, and records each
+completed version in `supabase_migrations.schema_migrations`. It preserves the
+required commit boundary for the `PARENT` enum value. It must not be run against
+a project containing application tables or uncertain partial deployment.
+
+For an existing project, first run
+`supabase/scripts/audit_migration_state.sql` in the SQL Editor. If migration
+history and object presence disagree, stop and compare the live schema with the
+canonical files. Do not rerun individual historical migrations, and do not use
+the fresh baseline as a repair script. For a disposable test project, recreate
+the database and run the generated baseline; for a retained project, perform a
+reviewed schema repair or restore from a verified backup before resuming normal
+`supabase db push` deployments.
+
+If the existing project must be retained but its OmniTeam data can be destroyed,
+the scoped reset script is available at
+`supabase/scripts/reset_omniteam_application.sql`. It requires a verified backup,
+an explicit confirmation-token edit, and an empty `omnisite-assets` Storage
+bucket. It preserves Supabase Auth users and schemas outside the repository's
+application objects. Run it once, regenerate the fresh baseline, and run that
+baseline once. This is destructive and is not a repair script.
+
+## CLI deployment without SQL Editor
+
+The repository includes npm wrappers for the Supabase CLI. Install the CLI using
+the official Supabase instructions, authenticate, and link this checkout to the
+intended project:
+
+```bash
+supabase login
+supabase link --project-ref <project-ref>
+```
+
+Alternatively, populate the ignored workspace file `.supabase.env`:
+
+```dotenv
+SUPABASE_PROJECT_REF=your-project-ref
+SUPABASE_ACCESS_TOKEN=your-personal-access-token
+SUPABASE_DB_PASSWORD=your-database-password
+```
+
+The access token is available from the Supabase dashboard account tokens page.
+The database password is optional unless `db push` requests it. Never commit
+`.supabase.env` or place these values in frontend environment variables.
+
+For normal pending migrations, use:
+
+```bash
+npm run supabase:deploy
+```
+
+This runs `supabase db push --linked` and applies only pending canonical files.
+It does not make an uncertain or partially deployed database safe automatically.
+
+For a destructive reset followed by a clean deployment, after taking a backup
+and removing any files from the `omnisite-assets` bucket, use:
+
+```bash
+OMNITEAM_RESET_CONFIRMATION='RESET OMNITEAM APPLICATION' npm run supabase:reset
+```
+
+The wrapper generates the current baseline, runs the scoped reset through
+`supabase db query --linked --file`, executes the baseline through the same CLI, and
+prints the linked migration list. It does not touch Supabase Auth users, but it
+does delete OmniTeam application data, functions, policies, and schema objects.
+Never use this command for a retained production dataset.
+
 For a migration that was completely applied before tracking existed, first audit
 every statement and dependency. Only after that verification, generate a
 record-only bundle:

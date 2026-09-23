@@ -3,6 +3,7 @@ node_modules/
 out/
 .env*
 !.env.example
+.supabase.env
 coverage/
 .DS_Store
 .vercel
