@@ -37,3 +37,18 @@ insert into public.athletes(organization_id,team_id,household_id,first_name,last
 ('10000000-0000-0000-0000-000000000001','10000000-0000-0000-0000-000000000002','12000000-0000-0000-0000-000000000003','Sofia','Rivera','2014-02-08');
 insert into public.join_requests(organization_id,team_id,profile_id,household_name,athlete_names,note) values
 ('10000000-0000-0000-0000-000000000001','10000000-0000-0000-0000-000000000002','11000000-0000-0000-0000-000000000006','Brooks Family','["Ellis Brooks"]','We just moved to Harbor and would love to join.');
+
+-- Phase 2 visible demo: Mon/Wed/Fri practices in the current week.
+insert into public.locations(id,organization_id,team_id,name,address) values
+('13000000-0000-0000-0000-000000000001','10000000-0000-0000-0000-000000000001','10000000-0000-0000-0000-000000000002','Harbor Aquatic Center','100 Harbor Way');
+insert into public.groups(id,organization_id,team_id,name) values
+('14000000-0000-0000-0000-000000000001','10000000-0000-0000-0000-000000000001','10000000-0000-0000-0000-000000000002','Senior Development');
+insert into public.group_members(organization_id,team_id,group_id,athlete_id)
+select organization_id,team_id,'14000000-0000-0000-0000-000000000001',id from public.athletes;
+insert into public.sessions(organization_id,team_id,group_id,location_id,title,starts_at,ends_at,series_id,created_by)
+select '10000000-0000-0000-0000-000000000001','10000000-0000-0000-0000-000000000002',
+ '14000000-0000-0000-0000-000000000001','13000000-0000-0000-0000-000000000001','Senior Development Practice',
+ (date_trunc('week',now()) + make_interval(days=>d,hours=>17,mins=>30)),
+ (date_trunc('week',now()) + make_interval(days=>d,hours=>19)),
+ '15000000-0000-0000-0000-000000000001','11000000-0000-0000-0000-000000000004'
+from unnest(array[0,2,4]) d;

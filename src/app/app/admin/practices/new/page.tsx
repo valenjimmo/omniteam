@@ -1,0 +1,2 @@
+import { requireAppUser } from "@/lib/auth";import { AppShell } from "@/shell/AppShell";import { PracticeForm } from "@/modules/schedule/PracticeForm";
+export default async function NewPracticePage(){await requireAppUser(true);return <AppShell admin active="schedule"><section className="oa-form-page"><p className="oa-eyebrow">COACH TOOLS</p><h1>Create practice</h1><p>Schedule once or generate the next eight weekly sessions.</p><PracticeForm/></section></AppShell>}
