@@ -1,0 +1,2 @@
+import Link from "next/link"; import { JoinForm } from "@/modules/roster/JoinForm";
+export default function JoinPage(){return <main className="oa-auth"><section><Link href="/" className="oa-wordmark">Omni<span>Athlete</span></Link><p className="oa-eyebrow">JOIN YOUR TEAM</p><h1>Bring your family aboard</h1><p>Tell Harbor Sharks who is in your household. Membership starts only after team approval.</p><JoinForm/></section></main>}
