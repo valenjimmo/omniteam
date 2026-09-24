@@ -13,7 +13,7 @@ export interface ScheduleEvent {
 }
 
 export function EventDetail({
-  event, volunteer,
+  event, volunteer, thread,
   action,
   athletes = [], sessions = [], commitments = [],
 }: {
@@ -23,8 +23,9 @@ export function EventDetail({
   sessions?: {id:string;name:string;starts_at:string;ends_at:string}[];
   commitments?: {athlete_id:string;response:"attend"|"decline";coach_note:string|null;commitment_sessions?:{event_session_id:string}[]}[];
   volunteer?: ReactNode;
+  thread?: ReactNode;
 }) {
-  const tabs = eventTabs([{key:"volunteer", label:"Volunteer", enabled:Boolean(volunteer), content:volunteer}]);
+  const tabs = eventTabs([{key:"volunteer", label:"Volunteer", enabled:Boolean(volunteer), content:volunteer}]).filter(tab=>tab.key!=="thread"||Boolean(thread));
   const active = tabs.some((tab)=>tab.key===action) ? action! : "details";
   const startsAt = new Intl.DateTimeFormat("en-US", {
     dateStyle: "full",
@@ -55,9 +56,7 @@ export function EventDetail({
           <><h2>Event details</h2><p>Your team will add more details here.</p></>
         ) : active === "commit" ? (
           <MeetCommitmentForm teamId={event.team_id} eventId={event.id} athletes={athletes} sessions={sessions} initial={commitments.map(c=>({athlete_id:c.athlete_id,response:c.response,coach_note:c.coach_note??"",session_ids:(c.commitment_sessions??[]).map(s=>s.event_session_id)}))}/>
-        ) : active === "volunteer" ? volunteer : active === "thread" ? (
-          <><h2>Thread</h2><p>The event conversation will be available in a later phase.</p></>
-        ) : null}
+        ) : active === "volunteer" ? volunteer : active === "thread" ? thread : null}
       </div>
     </section>
   );

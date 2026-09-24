@@ -49,6 +49,7 @@ begin
       'complete_mock_checkout', 'configure_team_registration',
       'create_platform_omnisite_team', 'create_team_site', 'delete_team_and_data',
       'get_public_site', 'handle_new_auth_user', 'has_team_module',
+      'has_omniconnect', 'has_omnivolunteer', 'is_connect_admin',
       'is_active_team_member', 'is_family_guardian', 'is_platform_owner',
       'is_platform_supporting_team', 'is_public_omnisite', 'is_swimmer_guardian',
       'is_verified_user', 'list_platform_team_modules', 'list_platform_team_overview',
@@ -63,6 +64,7 @@ begin
       'purge_all_test_project_data', 'purge_test_project_data', 'purge_test_team_data',
       'reject_team_id_change', 'reset_all_test_client_data', 'resolve_site_hostname',
       'review_parent_registration', 'rollback_team_site', 'save_site_draft',
+      'post_announcement', 'post_event_message', 'claim_job_slot', 'release_job_signup',
       'save_site_template', 'set_site_enabled', 'set_team_member_module_permission',
       'set_team_member_role', 'start_platform_support_session'
     ])
@@ -81,6 +83,14 @@ $drop_functions$;
 
 -- CASCADE removes repository-owned policies, triggers, indexes, and constraints
 -- attached to these tables. It does not drop auth.users or storage schemas.
+drop table if exists public.messages cascade;
+drop table if exists public.threads cascade;
+drop table if exists public.announcements cascade;
+drop table if exists public.notification_preferences cascade;
+drop table if exists public.volunteer_ledger cascade;
+drop table if exists public.job_signups cascade;
+drop table if exists public.job_slots cascade;
+drop table if exists public.job_templates cascade;
 drop table if exists public.commitment_sessions cascade;
 drop table if exists public.commitments cascade;
 drop table if exists public.event_sessions cascade;
