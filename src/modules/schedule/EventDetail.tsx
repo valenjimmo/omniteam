@@ -1,10 +1,13 @@
 import { CalendarDays, MapPin } from "lucide-react";
+import { MeetCommitmentForm } from "./MeetCommitmentForm";
 
 export interface ScheduleEvent {
   id: string;
   title: string;
   starts_at: string;
   location: string | null;
+  team_id: string;
+  commit_deadline?: string | null;
 }
 
 const tabs = [
@@ -17,9 +20,13 @@ const tabs = [
 export function EventDetail({
   event,
   action,
+  athletes = [], sessions = [], commitments = [],
 }: {
   event: ScheduleEvent;
   action?: string;
+  athletes?: {id:string;first_name:string;last_name:string}[];
+  sessions?: {id:string;name:string;starts_at:string;ends_at:string}[];
+  commitments?: {athlete_id:string;response:"attend"|"decline";coach_note:string|null;commitment_sessions?:{event_session_id:string}[]}[];
 }) {
   const active = action === "commit" || action === "volunteer" || action === "thread" ? action : "details";
   const startsAt = new Intl.DateTimeFormat("en-US", {
@@ -49,10 +56,12 @@ export function EventDetail({
       <div className="oa-event-panel">
         {active === "details" ? (
           <><h2>Event details</h2><p>Your team will add more details here.</p></>
+        ) : active === "commit" ? (
+          <MeetCommitmentForm teamId={event.team_id} eventId={event.id} athletes={athletes} sessions={sessions} initial={commitments.map(c=>({athlete_id:c.athlete_id,response:c.response,coach_note:c.coach_note??"",session_ids:(c.commitment_sessions??[]).map(s=>s.event_session_id)}))}/>
         ) : active === "thread" ? (
           <><h2>Thread</h2><p>The event conversation will be available in a later phase.</p></>
         ) : (
-          <><h2>{active === "commit" ? "Attend" : "Volunteer"}</h2><p>This action will be available in a later phase.</p></>
+          <><h2>Volunteer</h2><p>Volunteer jobs will appear here when OmniVolunteer is enabled.</p></>
         )}
       </div>
     </section>

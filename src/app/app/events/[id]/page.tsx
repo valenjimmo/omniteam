@@ -20,11 +20,15 @@ export default async function EventPage({
   const db = await createSupabaseServerClient();
   const { data, error } = await db
     .from("events")
-    .select("id,title,starts_at,location")
+    .select("id,team_id,title,starts_at,location,commit_deadline")
     .eq("id", id)
     .single<ScheduleEvent>();
   if (error || !data) notFound();
 
-  return <AppShell><EventDetail event={data} action={action} /></AppShell>;
+  const [{data:sessions},{data:athletes},{data:commitments}]=await Promise.all([
+    db.from("event_sessions").select("id,name,starts_at,ends_at").eq("event_id",id).order("sort_order"),
+    db.from("athletes").select("id,first_name,last_name").eq("team_id",data.team_id).eq("status","active"),
+    db.from("commitments").select("athlete_id,response,coach_note,commitment_sessions(event_session_id)").eq("event_id",id),
+  ]);
+  return <AppShell><EventDetail event={data} action={action} athletes={athletes??[]} sessions={sessions??[]} commitments={(commitments??[]) as never} /></AppShell>;
 }
-

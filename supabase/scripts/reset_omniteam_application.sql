@@ -81,6 +81,21 @@ $drop_functions$;
 
 -- CASCADE removes repository-owned policies, triggers, indexes, and constraints
 -- attached to these tables. It does not drop auth.users or storage schemas.
+drop table if exists public.commitment_sessions cascade;
+drop table if exists public.commitments cascade;
+drop table if exists public.event_sessions cascade;
+drop table if exists public.events cascade;
+drop table if exists public.attendance cascade;
+drop table if exists public.session_rsvps cascade;
+drop table if exists public.sessions cascade;
+drop table if exists public.group_members cascade;
+drop table if exists public.groups cascade;
+drop table if exists public.locations cascade;
+drop table if exists public.join_requests cascade;
+drop table if exists public.household_members cascade;
+drop table if exists public.athletes cascade;
+drop table if exists public.memberships cascade;
+drop table if exists public.households cascade;
 drop table if exists public.site_action_limits cascade;
 drop table if exists public.site_domains cascade;
 drop table if exists public.site_catalog_audit cascade;
