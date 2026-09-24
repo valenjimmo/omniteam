@@ -3,6 +3,8 @@ import { AppShell } from "@/shell/AppShell";
 import { requireAppUser } from "@/lib/auth";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { EventDetail, type ScheduleEvent } from "@/modules/schedule/EventDetail";
+import { VolunteerTab } from "@/modules/volunteer/VolunteerTab";
+import type { VolunteerSlot } from "@/modules/volunteer/types";
 
 const uuidPattern = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
@@ -25,10 +27,17 @@ export default async function EventPage({
     .single<ScheduleEvent>();
   if (error || !data) notFound();
 
-  const [{data:sessions},{data:athletes},{data:commitments}]=await Promise.all([
+  const {data:{user}}=await db.auth.getUser();
+  const now=new Date().toISOString();
+  const [{data:sessions},{data:athletes},{data:commitments},{data:membership},{data:entitlement}]=await Promise.all([
     db.from("event_sessions").select("id,name,starts_at,ends_at").eq("event_id",id).order("sort_order"),
     db.from("athletes").select("id,first_name,last_name").eq("team_id",data.team_id).eq("status","active"),
     db.from("commitments").select("athlete_id,response,coach_note,commitment_sessions(event_session_id)").eq("event_id",id),
+    db.from("memberships").select("household_id").eq("team_id",data.team_id).eq("profile_id",user!.id).eq("status","active").single(),
+    db.from("team_module_entitlements").select("module_key").eq("team_id",data.team_id).eq("module_key","omnivolunteer").lte("starts_at",now).or(`ends_at.is.null,ends_at.gt.${now}`).maybeSingle(),
   ]);
-  return <AppShell><EventDetail event={data} action={action} athletes={athletes??[]} sessions={sessions??[]} commitments={(commitments??[]) as never} /></AppShell>;
+  let slots: VolunteerSlot[]=[];
+  if(entitlement){const result=await db.from("job_slots").select("id,title,description,starts_at,ends_at,signup_deadline,capacity,credit_value,job_signups(id,household_id,membership_id,status)").eq("team_id",data.team_id).eq("event_id",id).order("starts_at");slots=(result.data??[]) as VolunteerSlot[];}
+  const volunteer=entitlement?<VolunteerTab teamId={data.team_id} eventId={id} householdId={membership?.household_id??null} slots={slots}/>:undefined;
+  return <AppShell><EventDetail event={data} action={action} athletes={athletes??[]} sessions={sessions??[]} commitments={(commitments??[]) as never} volunteer={volunteer}/></AppShell>;
 }

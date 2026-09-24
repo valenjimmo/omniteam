@@ -3,6 +3,7 @@ insert into public.organizations(id,name,slug,joining_open) values('10000000-000
 insert into public.teams(id,organization_id,name) values('10000000-0000-0000-0000-000000000002','10000000-0000-0000-0000-000000000001','Harbor Sharks');
 insert into public.team_settings(team_id) values('10000000-0000-0000-0000-000000000002');
 insert into public.team_module_entitlements(team_id,module_key) values('10000000-0000-0000-0000-000000000002','omniathlete');
+insert into public.team_module_entitlements(team_id,module_key) values('10000000-0000-0000-0000-000000000002','omnivolunteer');
 
 insert into auth.users(instance_id,id,aud,role,email,encrypted_password,email_confirmed_at,raw_app_meta_data,raw_user_meta_data,created_at,updated_at,confirmation_token,recovery_token,email_change_token_new,email_change) values
 ('00000000-0000-0000-0000-000000000000','11000000-0000-0000-0000-000000000001','authenticated','authenticated','alex.morgan@example.test',crypt('demo-password',gen_salt('bf')),now(),'{"provider":"email","providers":["email"]}','{"first_name":"Alex","last_name":"Morgan"}',now(),now(),'','','',''),
@@ -59,3 +60,17 @@ values('16000000-0000-0000-0000-000000000001','10000000-0000-0000-0000-000000000
 insert into public.event_sessions(id,org_id,team_id,event_id,name,starts_at,ends_at,sort_order) values
 ('16100000-0000-0000-0000-000000000001','10000000-0000-0000-0000-000000000001','10000000-0000-0000-0000-000000000002','16000000-0000-0000-0000-000000000001','Saturday Morning','2026-10-10 08:00-07','2026-10-10 12:00-07',0),
 ('16100000-0000-0000-0000-000000000002','10000000-0000-0000-0000-000000000001','10000000-0000-0000-0000-000000000002','16000000-0000-0000-0000-000000000001','Saturday Afternoon','2026-10-10 13:00-07','2026-10-10 17:00-07',1);
+
+-- Phase 4 visible jobs attached to the existing meet.
+insert into public.job_templates(id,organization_id,team_id,title,description,default_credit,created_by) values
+('17000000-0000-0000-0000-000000000001','10000000-0000-0000-0000-000000000001','10000000-0000-0000-0000-000000000002','Lane timer','Time swimmers and record finishes.',1,'11000000-0000-0000-0000-000000000004'),
+('17000000-0000-0000-0000-000000000002','10000000-0000-0000-0000-000000000001','10000000-0000-0000-0000-000000000002','Hospitality','Keep the volunteer table stocked.',1,'11000000-0000-0000-0000-000000000004');
+insert into public.job_slots(id,organization_id,team_id,event_id,template_id,title,description,starts_at,ends_at,signup_deadline,capacity,credit_value,created_by) values
+('17100000-0000-0000-0000-000000000001','10000000-0000-0000-0000-000000000001','10000000-0000-0000-0000-000000000002','16000000-0000-0000-0000-000000000001','17000000-0000-0000-0000-000000000001','Morning lane timer','Time lane 4 during the morning session.','2026-10-10 08:00-07','2026-10-10 12:00-07','2026-10-09 20:00-07',3,1,'11000000-0000-0000-0000-000000000004'),
+('17100000-0000-0000-0000-000000000002','10000000-0000-0000-0000-000000000001','10000000-0000-0000-0000-000000000002','16000000-0000-0000-0000-000000000001','17000000-0000-0000-0000-000000000002','Hospitality table','Set up and serve snacks for volunteers.','2026-10-10 07:30-07','2026-10-10 10:30-07','2026-10-09 20:00-07',2,1,'11000000-0000-0000-0000-000000000004');
+insert into public.job_signups(id,organization_id,team_id,slot_id,membership_id,household_id)
+select '17200000-0000-0000-0000-000000000001',organization_id,team_id,'17100000-0000-0000-0000-000000000001',id,household_id
+from public.memberships where team_id='10000000-0000-0000-0000-000000000002' and profile_id='11000000-0000-0000-0000-000000000001';
+insert into public.volunteer_ledger(organization_id,team_id,membership_id,household_id,season_year,credit,note,created_by)
+select organization_id,team_id,id,household_id,2026,1,'Spring time trial',profile_id
+from public.memberships where team_id='10000000-0000-0000-0000-000000000002' and profile_id='11000000-0000-0000-0000-000000000001';

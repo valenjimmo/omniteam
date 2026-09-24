@@ -1,5 +1,7 @@
 import { CalendarDays, MapPin } from "lucide-react";
 import { MeetCommitmentForm } from "./MeetCommitmentForm";
+import type { ReactNode } from "react";
+import { eventTabs } from "@/shell/registries";
 
 export interface ScheduleEvent {
   id: string;
@@ -10,15 +12,8 @@ export interface ScheduleEvent {
   commit_deadline?: string | null;
 }
 
-const tabs = [
-  { label: "Details", key: "details" },
-  { label: "Attend", key: "commit" },
-  { label: "Volunteer", key: "volunteer" },
-  { label: "Thread", key: "thread" },
-] as const;
-
 export function EventDetail({
-  event,
+  event, volunteer,
   action,
   athletes = [], sessions = [], commitments = [],
 }: {
@@ -27,8 +22,10 @@ export function EventDetail({
   athletes?: {id:string;first_name:string;last_name:string}[];
   sessions?: {id:string;name:string;starts_at:string;ends_at:string}[];
   commitments?: {athlete_id:string;response:"attend"|"decline";coach_note:string|null;commitment_sessions?:{event_session_id:string}[]}[];
+  volunteer?: ReactNode;
 }) {
-  const active = action === "commit" || action === "volunteer" || action === "thread" ? action : "details";
+  const tabs = eventTabs([{key:"volunteer", label:"Volunteer", enabled:Boolean(volunteer), content:volunteer}]);
+  const active = tabs.some((tab)=>tab.key===action) ? action! : "details";
   const startsAt = new Intl.DateTimeFormat("en-US", {
     dateStyle: "full",
     timeStyle: "short",
@@ -58,11 +55,9 @@ export function EventDetail({
           <><h2>Event details</h2><p>Your team will add more details here.</p></>
         ) : active === "commit" ? (
           <MeetCommitmentForm teamId={event.team_id} eventId={event.id} athletes={athletes} sessions={sessions} initial={commitments.map(c=>({athlete_id:c.athlete_id,response:c.response,coach_note:c.coach_note??"",session_ids:(c.commitment_sessions??[]).map(s=>s.event_session_id)}))}/>
-        ) : active === "thread" ? (
+        ) : active === "volunteer" ? volunteer : active === "thread" ? (
           <><h2>Thread</h2><p>The event conversation will be available in a later phase.</p></>
-        ) : (
-          <><h2>Volunteer</h2><p>Volunteer jobs will appear here when OmniVolunteer is enabled.</p></>
-        )}
+        ) : null}
       </div>
     </section>
   );
