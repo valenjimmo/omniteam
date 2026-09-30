@@ -1,6 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
 import { resolveHostname } from "@/modules/omnisite/resolver";
 export async function middleware(request: NextRequest) {
+  // Vercel invokes cron jobs on the generated production deployment hostname,
+  // which is intentionally absent from the public OmniSite host allowlist.
+  // Cron handlers authenticate CRON_SECRET before performing any work.
+  if (request.nextUrl.pathname.startsWith("/api/cron/")) {
+    return NextResponse.next();
+  }
+
   const address = await resolveHostname(request.headers.get("host"));
   if (!address)
     return new NextResponse("Site unavailable", {
