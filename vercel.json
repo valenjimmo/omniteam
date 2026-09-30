@@ -1,6 +1,10 @@
 {
   "crons": [
     {
+      "path": "/api/cron/supabase-keepalive",
+      "schedule": "23 16 * * *"
+    },
+    {
       "path": "/api/cron/production-operations",
       "schedule": "41 15 * * *"
     }
