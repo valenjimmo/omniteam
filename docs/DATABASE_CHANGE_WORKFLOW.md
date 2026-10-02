@@ -122,6 +122,19 @@ npm run supabase:deploy
 This runs `supabase db push --linked` and applies only pending canonical files.
 It does not make an uncertain or partially deployed database safe automatically.
 
+The configurable family-registration migration has an additional focused
+preflight, verification script, and environment-by-environment checklist in
+[`FAMILY_REGISTRATION_DEPLOYMENT.md`](FAMILY_REGISTRATION_DEPLOYMENT.md). Use:
+
+```bash
+npm run supabase:deploy:registration
+npm run supabase:deploy:registration -- --apply
+```
+
+The first command is read-only. The second repeats the dry run, deploys all
+pending tracked migrations in filename order, and verifies the registration
+schema. It is not a way to skip earlier pending migrations.
+
 For a destructive reset followed by a clean deployment, after taking a backup
 and removing any files from the `omnisite-assets` bucket, use:
 

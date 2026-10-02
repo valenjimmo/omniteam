@@ -18,6 +18,7 @@
     "migration:manual": "node scripts/prepare-manual-migration.mjs",
     "migration:fresh-baseline": "node scripts/prepare-fresh-baseline.mjs",
     "supabase:deploy": "node scripts/run-supabase-workflow.mjs deploy",
+    "supabase:deploy:registration": "node scripts/deploy-family-registration.mjs",
     "supabase:reset": "node scripts/run-supabase-workflow.mjs reset"
   },
   "dependencies": {
