@@ -1,132 +1,101 @@
 "use client";
 
-import { useEffect, useMemo, useState, type FormEvent } from "react";
+import { useEffect, useMemo, useState, type ReactNode } from "react";
 import { useParams } from "next/navigation";
 import { createBrowserClient } from "@supabase/ssr";
+import { Check, ChevronLeft, ChevronRight, Plus, Trash2 } from "lucide-react";
 import Link from "next/link";
 import { authCallbackUrl } from "@/lib/site-url";
+import { defaultRegistrationConfiguration, emptyRegistrationPayload, emptySwimmer, validateRegistration, type Guardian, type EmergencyContact, type RegistrationConfiguration, type RegistrationPayload, type RegistrationQuestion, type SwimmerRegistration } from "@/modules/omniathlete/registration/model";
 
-type RegistrationTeam = { team_id: string; slug: string };
-type SwimmerName = { first_name: string; last_name: string };
+type Team = { team_id: string; slug: string; registration_configuration?: RegistrationConfiguration };
+const stepNames = ["Account", "Household", "Contacts", "Swimmers", "Medical", "Agreements", "Review"];
 
-function parseSwimmers(value: string): SwimmerName[] {
-  return value.split("\n").map((line) => line.trim()).filter(Boolean).map((line) => {
-    const [first_name, ...last] = line.split(/\s+/);
-    return { first_name, last_name: last.join(" ") };
-  });
+function Field({ label, value, set, type = "text", required, help }: { label: string; value: string; set: (v: string) => void; type?: string; required?: boolean; help?: string }) {
+  return <label>{label}{required && <b className="required-mark"> *</b>}{help && <small>{help}</small>}<input value={value} type={type} required={required} onChange={(e) => set(e.target.value)} /></label>;
+}
+function Section({ title, intro, children }: { title: string; intro: string; children: ReactNode }) {
+  return <section className="registration-section"><h2>{title}</h2><p>{intro}</p>{children}</section>;
+}
+function Question({ q, value, set }: { q: RegistrationQuestion; value: string | string[] | boolean | undefined; set: (v: string | string[] | boolean) => void }) {
+  if (q.type === "long_text") return <label>{q.label}{q.required && " *"}<textarea value={String(value ?? "")} onChange={(e) => set(e.target.value)} /></label>;
+  if (q.type === "yes_no") return <label>{q.label}{q.required && " *"}<select value={value === true ? "yes" : value === false ? "no" : ""} onChange={(e) => set(e.target.value === "yes")}><option value="">Select…</option><option value="yes">Yes</option><option value="no">No</option></select></label>;
+  if (q.type === "single_select") return <label>{q.label}{q.required && " *"}<select value={String(value ?? "")} onChange={(e) => set(e.target.value)}><option value="">Select…</option>{q.options?.map((o) => <option key={o}>{o}</option>)}</select></label>;
+  return <Field label={q.label} help={q.helpText} required={q.required} type={q.type === "date" ? "date" : "text"} value={String(value ?? "")} set={set} />;
 }
 
-export default function ParentRegistrationPage() {
+export default function RegistrationPage() {
   const { slug } = useParams<{ slug: string }>();
-  const [team, setTeam] = useState<RegistrationTeam | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [team, setTeam] = useState<Team | null>(null);
+  const [config, setConfig] = useState(defaultRegistrationConfiguration);
+  const [data, setData] = useState<RegistrationPayload>(emptyRegistrationPayload);
+  const [step, setStep] = useState(0);
   const [mode, setMode] = useState<"signup" | "signin">("signup");
-  const [firstName, setFirstName] = useState("");
-  const [lastName, setLastName] = useState("");
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [familyName, setFamilyName] = useState("");
-  const [swimmerNames, setSwimmerNames] = useState("");
-  const [message, setMessage] = useState("");
+  const [account, setAccount] = useState({ firstName: "", lastName: "", email: "", password: "" });
+  const [authenticated, setAuthenticated] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(false);
-
-  const client = useMemo(() => {
-    const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
-    const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-    return url && key ? createBrowserClient(url, key) : null;
-  }, []);
+  const [message, setMessage] = useState("");
+  const [errors, setErrors] = useState<string[]>([]);
+  const client = useMemo(() => { const url = process.env.NEXT_PUBLIC_SUPABASE_URL, key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY; return url && key ? createBrowserClient(url, key) : null; }, []);
+  const draftKey = `omniteam-registration:${slug}`;
 
   useEffect(() => {
-    if (!client) {
-      setMessage("Registration is not configured yet. Please contact your team.");
+    if (!client) { setMessage("Registration is not configured yet."); setLoading(false); return; }
+    Promise.all([client.from("team_registration_settings").select("*").eq("slug", slug).eq("registration_open", true).maybeSingle(), client.auth.getUser()]).then(([settings, auth]) => {
+      if (!settings.data || settings.error) setMessage("Registration is not open for this team.");
+      else { const found = settings.data as Team; const configured = found.registration_configuration; setTeam(found); setConfig({ ...defaultRegistrationConfiguration, ...configured, programs: configured?.programs ?? [], questions: configured?.questions ?? [], agreements: configured?.agreements ?? defaultRegistrationConfiguration.agreements }); try { const saved = localStorage.getItem(draftKey); if (saved) setData(JSON.parse(saved)); } catch { /* ignore invalid draft */ } }
+      if (auth.data.user) { setAuthenticated(true); setAccount((a) => ({ ...a, email: auth.data.user?.email ?? a.email })); }
       setLoading(false);
-      return;
-    }
-    client.from("team_registration_settings").select("team_id,slug")
-      .eq("slug", slug).eq("registration_open", true).maybeSingle()
-      .then(({ data, error }) => {
-        setTeam(data);
-        if (error || !data) setMessage("Registration is not open for this team.");
-        setLoading(false);
-      });
-  }, [client, slug]);
-
-  async function submitRequest(userId: string, selectedTeam: RegistrationTeam) {
-    const swimmers = parseSwimmers(swimmerNames);
-    if (swimmers.length < 1 || swimmers.length > 10 ||
-      swimmers.some((swimmer) => !swimmer.first_name || !swimmer.last_name)) {
-      setMessage("Enter each swimmer's first and last name on a separate line (up to 10).");
-      return;
-    }
-    const { error } = await client!.from("parent_registration_requests").insert({
-      team_id: selectedTeam.team_id,
-      user_id: userId,
-      family_name: familyName.trim(),
-      swimmers,
     });
-    if (error) {
-      setMessage(error.code === "23505"
-        ? "You have already submitted a registration for this team."
-        : `Registration could not be submitted: ${error.message}`);
-      return;
-    }
-    setMessage("Your family registration has been submitted for team approval. Once approved, visit /my-family to see your family.");
-  }
+  }, [client, draftKey, slug]);
+  useEffect(() => { if (!loading && team) localStorage.setItem(draftKey, JSON.stringify(data)); }, [data, draftKey, loading, team]);
 
-  async function onSubmit(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    if (!client || !team || busy) return;
-    setBusy(true);
-    setMessage("");
+  const family = (key: keyof RegistrationPayload["family"], value: string) => setData((d) => ({ ...d, family: { ...d.family, [key]: value } }));
+  const guardian = (i: number, patch: Partial<Guardian>) => setData((d) => ({ ...d, guardians: d.guardians.map((x, n) => n === i ? { ...x, ...patch } : x) }));
+  const emergency = (i: number, patch: Partial<EmergencyContact>) => setData((d) => ({ ...d, emergencyContacts: d.emergencyContacts.map((x, n) => n === i ? { ...x, ...patch } : x) }));
+  const swimmer = (id: string, patch: Partial<SwimmerRegistration>) => setData((d) => ({ ...d, swimmers: d.swimmers.map((x) => x.id === id ? { ...x, ...patch } : x) }));
+
+  async function connectAccount() {
+    if (!client) return false; setBusy(true); setMessage("");
     try {
       if (mode === "signup") {
-        const { data, error } = await client.auth.signUp({
-          email, password,
-          options: { data: { first_name: firstName.trim(), last_name: lastName.trim() },
-            emailRedirectTo: authCallbackUrl(`/register/${slug}`) },
-        });
+        const { data: result, error } = await client.auth.signUp({ email: account.email, password: account.password, options: { data: { first_name: account.firstName.trim(), last_name: account.lastName.trim() }, emailRedirectTo: authCallbackUrl(`/register/${slug}`) } });
         if (error) throw error;
-        if (!data.session || !data.user) {
-          setMessage("Check your email to verify your account. Then return here, select ‘I already have an account’, and submit your family details.");
-          return;
-        }
-        await submitRequest(data.user.id, team);
-      } else {
-        const { data, error } = await client.auth.signInWithPassword({ email, password });
-        if (error) throw error;
-        await submitRequest(data.user.id, team);
-      }
-    } catch (error) {
-      setMessage(error instanceof Error ? error.message : "Registration could not be completed.");
-    } finally {
-      setBusy(false);
-    }
+        if (!result.session) { setMessage("Check your email to verify your account. Your draft is saved on this device; return here and sign in to continue."); return false; }
+      } else { const { error } = await client.auth.signInWithPassword({ email: account.email, password: account.password }); if (error) throw error; }
+      setAuthenticated(true);
+      setData((d) => ({ ...d, family: { ...d.family, billingEmail: d.family.billingEmail || account.email, billingContactName: d.family.billingContactName || `${account.firstName} ${account.lastName}`.trim() }, guardians: d.guardians.map((g, i) => i ? g : { ...g, firstName: g.firstName || account.firstName, lastName: g.lastName || account.lastName, email: g.email || account.email }) }));
+      return true;
+    } catch (e) { setMessage(e instanceof Error ? e.message : "Account access failed."); return false; } finally { setBusy(false); }
   }
+  async function next() { if (step === 0 && !authenticated && !(await connectAccount())) return; setStep((s) => Math.min(s + 1, 6)); window.scrollTo({ top: 0, behavior: "smooth" }); }
+  async function submit() {
+    if (!client || !team) return; const missing = validateRegistration(data, config); setErrors(missing);
+    if (missing.length) { setMessage("Please complete the required information listed below."); return; }
+    setBusy(true); const { error } = await client.rpc("submit_family_registration", { target_team_id: team.team_id, registration_payload: data }); setBusy(false);
+    if (error) { setMessage(`Registration could not be submitted: ${error.message}`); return; }
+    localStorage.removeItem(draftKey); setStep(7); setMessage("Your team will review the registration before activating your family account.");
+  }
+  if (loading) return <main className="registration-page"><div className="registration-shell">Checking registration…</div></main>;
+  if (!team) return <main className="registration-page"><div className="registration-shell"><Link href="/" className="registration-brand">Omni<span>Team</span></Link><p className="registration-message">{message}</p></div></main>;
+  if (step === 7) return <main className="registration-page"><div className="registration-shell registration-complete"><span><Check /></span><h1>Registration received</h1><p>{message}</p><Link href="/login">Go to sign in</Link></div></main>;
 
-  return <main className="registration-page">
-    <div className="registration-card">
-      <Link href="/" className="registration-brand">Omni<span>Team</span></Link>
-      <p className="registration-kicker">OMNIATHLETE · FAMILY REGISTRATION</p>
-      <h1>Join your swim team</h1>
-      <p className="registration-intro">Register your family for {slug.replaceAll("-", " ")}.
-        Your team will review the request before your family information becomes available.</p>
-      {loading ? <p>Checking registration…</p> : team && <form onSubmit={onSubmit}>
-        {mode === "signup" && <div className="registration-row">
-          <label>First name<input required maxLength={100} value={firstName} onChange={(event) => setFirstName(event.target.value)} /></label>
-          <label>Last name<input required maxLength={100} value={lastName} onChange={(event) => setLastName(event.target.value)} /></label>
-        </div>}
-        <label>Email<input required type="email" autoComplete="email" value={email} onChange={(event) => setEmail(event.target.value)} /></label>
-        <label>Password<input required type="password" minLength={8} autoComplete={mode === "signup" ? "new-password" : "current-password"} value={password} onChange={(event) => setPassword(event.target.value)} /></label>
-        <label>Family name<input required maxLength={100} value={familyName} onChange={(event) => setFamilyName(event.target.value)} placeholder="e.g. The Chen family" /></label>
-        <label>Swimmers <small>(one full name per line)</small>
-          <textarea required rows={4} value={swimmerNames} onChange={(event) => setSwimmerNames(event.target.value)} placeholder={"Avery Chen\nJordan Chen"} />
-        </label>
-        <button type="submit" disabled={busy}>{busy ? "Submitting…" : "Submit family registration"}</button>
-        <button type="button" className="registration-toggle" onClick={() => { setMode(mode === "signup" ? "signin" : "signup"); setMessage(""); }}>
-          {mode === "signup" ? "I already have an account" : "Create a new account"}
-        </button>
-      </form>}
+  return <main className="registration-page"><div className="registration-shell"><header className="registration-header"><Link href="/" className="registration-brand">Omni<span>Team</span></Link><div><small>FAMILY REGISTRATION</small><strong>{config.title}</strong></div></header><div className="registration-layout">
+    <aside><p>YOUR PROGRESS</p><ol>{stepNames.map((name, i) => <li key={name} className={i === step ? "active" : i < step ? "done" : ""}><span>{i < step ? <Check size={14} /> : i + 1}</span>{name}</li>)}</ol><small>Your draft is saved automatically on this device.</small></aside>
+    <div className="registration-content"><div className="registration-mobile-progress">Step {step + 1} of 7 <progress value={step + 1} max="7" /></div>
+      {step === 0 && <Section title={authenticated ? "Account connected" : mode === "signup" ? "Create your family account" : "Sign in to continue"} intro={config.introduction}>{authenticated ? <p className="registration-success"><Check size={18} /> Signed in as {account.email}</p> : <>{mode === "signup" && <div className="registration-grid"><Field label="First name" required value={account.firstName} set={(firstName) => setAccount({ ...account, firstName })} /><Field label="Last name" required value={account.lastName} set={(lastName) => setAccount({ ...account, lastName })} /></div>}<Field label="Email" required type="email" value={account.email} set={(email) => setAccount({ ...account, email })} /><Field label="Password" required type="password" help="Use at least 8 characters." value={account.password} set={(password) => setAccount({ ...account, password })} /><button className="registration-text-button" onClick={() => setMode(mode === "signup" ? "signin" : "signup")}>{mode === "signup" ? "Already have an account? Sign in" : "New family? Create an account"}</button></>}</Section>}
+      {step === 1 && <Section title="Household and billing" intro="Contact and billing details are collected once for the whole family."><div className="registration-grid"><Field label="Family name" required value={data.family.familyName} set={(v) => family("familyName", v)} /><Field label="Primary phone" required type="tel" value={data.family.primaryPhone} set={(v) => family("primaryPhone", v)} /></div><Field label="Street address" required value={data.family.address1} set={(v) => family("address1", v)} /><Field label="Address line 2" value={data.family.address2} set={(v) => family("address2", v)} /><div className="registration-grid registration-grid-3"><Field label="City" required value={data.family.city} set={(v) => family("city", v)} /><Field label="State / province" required value={data.family.state} set={(v) => family("state", v)} /><Field label="Postal code" required value={data.family.postalCode} set={(v) => family("postalCode", v)} /></div><div className="registration-grid"><Field label="Country" required value={data.family.country} set={(v) => family("country", v)} /><Field label="Billing email" required type="email" value={data.family.billingEmail} set={(v) => family("billingEmail", v)} /></div><Field label="Billing contact" value={data.family.billingContactName} set={(v) => family("billingContactName", v)} /><Field label="How did you hear about us?" value={data.family.referralSource} set={(v) => family("referralSource", v)} />{config.questions.filter((q) => q.appliesTo === "family").map((q) => <Question key={q.id} q={q} value={data.familyAnswers[q.id]} set={(v) => setData((d) => ({ ...d, familyAnswers: { ...d.familyAnswers, [q.id]: v } }))} />)}</Section>}
+      {step === 2 && <Section title="Guardians and emergency contacts" intro="Add every adult the team should know about. Additional guardians are contacts—not shared logins.">{data.guardians.map((g, i) => <div className="registration-repeat" key={i}><RepeatTitle label={`Parent or guardian ${i + 1}`} removable={i > 0} remove={() => setData({ ...data, guardians: data.guardians.filter((_, n) => n !== i) })} /><div className="registration-grid"><Field label="First name" required value={g.firstName} set={(firstName) => guardian(i, { firstName })} /><Field label="Last name" required value={g.lastName} set={(lastName) => guardian(i, { lastName })} /><Field label="Relationship" required value={g.relationship} set={(relationship) => guardian(i, { relationship })} /><Field label="Email" required type="email" value={g.email} set={(email) => guardian(i, { email })} /><Field label="Mobile phone" required type="tel" value={g.mobilePhone} set={(mobilePhone) => guardian(i, { mobilePhone })} /><Field label="Alternate phone" type="tel" value={g.alternatePhone} set={(alternatePhone) => guardian(i, { alternatePhone })} /></div><div className="registration-checks">{([['legalGuardian','Legal guardian'],['authorizedPickup','Authorized pickup'],['receiveEmail','Receive email'],['receiveSms','Receive texts']] as const).map(([key, label]) => <label className="registration-check" key={key}><input type="checkbox" checked={g[key]} onChange={(e) => guardian(i, { [key]: e.target.checked })} />{label}</label>)}</div></div>)}<Add label="Add another guardian" onClick={() => setData({ ...data, guardians: [...data.guardians, { firstName: "", lastName: "", relationship: "", email: "", mobilePhone: "", alternatePhone: "", sameHousehold: true, legalGuardian: false, authorizedPickup: true, receiveEmail: true, receiveSms: false }] })} /><h3 className="registration-subheading">Emergency contacts</h3>{data.emergencyContacts.map((c, i) => <div className="registration-repeat" key={i}><RepeatTitle label={`Emergency contact ${i + 1}`} removable={i > 0} remove={() => setData({ ...data, emergencyContacts: data.emergencyContacts.filter((_, n) => n !== i) })} /><div className="registration-grid"><Field label="First name" required value={c.firstName} set={(firstName) => emergency(i, { firstName })} /><Field label="Last name" required value={c.lastName} set={(lastName) => emergency(i, { lastName })} /><Field label="Relationship" required value={c.relationship} set={(relationship) => emergency(i, { relationship })} /><Field label="Phone" required type="tel" value={c.phone} set={(phone) => emergency(i, { phone })} /></div></div>)}<Add label="Add emergency contact" onClick={() => setData({ ...data, emergencyContacts: [...data.emergencyContacts, { firstName: "", lastName: "", relationship: "", phone: "", alternatePhone: "" }] })} /></Section>}
+      {step === 3 && <Section title="Swimmers" intro="Add every swimmer registering with this family.">{data.swimmers.map((s, i) => <div className="registration-repeat" key={s.id}><RepeatTitle label={`Swimmer ${i + 1}`} removable={data.swimmers.length > 1} remove={() => setData({ ...data, swimmers: data.swimmers.filter((x) => x.id !== s.id) })} /><div className="registration-grid registration-grid-3"><Field label="Legal first name" required value={s.firstName} set={(firstName) => swimmer(s.id, { firstName })} /><Field label="Middle name" value={s.middleName} set={(middleName) => swimmer(s.id, { middleName })} /><Field label="Legal last name" required value={s.lastName} set={(lastName) => swimmer(s.id, { lastName })} /></div><div className="registration-grid"><Field label="Preferred name" value={s.preferredName} set={(preferredName) => swimmer(s.id, { preferredName })} /><Field label="Birth date" required type="date" value={s.birthDate} set={(birthDate) => swimmer(s.id, { birthDate })} /><Field label="Legal sex" value={s.legalSex} set={(legalSex) => swimmer(s.id, { legalSex })} /><Field label="Gender identity / pronouns" value={s.genderIdentity} set={(genderIdentity) => swimmer(s.id, { genderIdentity })} /></div>{config.collectDemographics && <div className="registration-grid"><Field label="Race" value={s.race} set={(race) => swimmer(s.id, { race })} /><Field label="Ethnicity" value={s.ethnicity} set={(ethnicity) => swimmer(s.id, { ethnicity })} /></div>}{config.programs.length > 0 && <label>Requested program *<select value={s.requestedProgramId} onChange={(e) => swimmer(s.id, { requestedProgramId: e.target.value })}><option value="">Choose…</option>{config.programs.map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}</select></label>}<div className="registration-grid"><Field label="USA Swimming ID" value={s.usaSwimmingId} set={(usaSwimmingId) => swimmer(s.id, { usaSwimmingId })} /><Field label="Previous team" value={s.priorTeam} set={(priorTeam) => swimmer(s.id, { priorTeam })} /><Field label="Years swimming" type="number" value={s.yearsSwimming} set={(yearsSwimming) => swimmer(s.id, { yearsSwimming })} />{config.collectApparel && <Field label="T-shirt size" value={s.tshirtSize} set={(tshirtSize) => swimmer(s.id, { tshirtSize })} />}</div>{config.collectSchool && <div className="registration-grid registration-grid-3"><Field label="School" value={s.school} set={(school) => swimmer(s.id, { school })} /><Field label="Grade" value={s.grade} set={(grade) => swimmer(s.id, { grade })} /><Field label="Graduation year" type="number" value={s.graduationYear} set={(graduationYear) => swimmer(s.id, { graduationYear })} /></div>}{config.questions.filter((q) => q.appliesTo === "swimmer").map((q) => <Question key={q.id} q={q} value={s.answers[q.id]} set={(v) => swimmer(s.id, { answers: { ...s.answers, [q.id]: v } })} />)}</div>)}<Add label="Add another swimmer" onClick={() => setData({ ...data, swimmers: [...data.swimmers, emptySwimmer()] })} /></Section>}
+      {step === 4 && <Section title="Medical and safety" intro="This private information is available only to authorized family and team personnel.">{data.swimmers.map((s) => <div className="registration-repeat" key={s.id}><h3>{s.firstName || "Swimmer"} {s.lastName}</h3>{([['allergies','Allergies'],['medications','Medications'],['medicalConditions','Medical conditions and relevant history'],['disabilitiesOrAccommodations','Accessibility needs or accommodations'],['notesForCoaches','Confidential notes for coaches']] as const).map(([key,label]) => <label key={key}>{label}<textarea rows={3} value={s[key]} onChange={(e) => swimmer(s.id, { [key]: e.target.value })} /></label>)}{config.collectPhysician && <div className="registration-grid"><Field label="Physician" value={s.physicianName} set={(physicianName) => swimmer(s.id, { physicianName })} /><Field label="Physician phone" type="tel" value={s.physicianPhone} set={(physicianPhone) => swimmer(s.id, { physicianPhone })} /><Field label="Dentist" value={s.dentistName} set={(dentistName) => swimmer(s.id, { dentistName })} /><Field label="Dentist phone" type="tel" value={s.dentistPhone} set={(dentistPhone) => swimmer(s.id, { dentistPhone })} /></div>}{config.collectInsurance && <div className="registration-grid"><Field label="Insurance carrier" value={s.insuranceCarrier} set={(insuranceCarrier) => swimmer(s.id, { insuranceCarrier })} /><Field label="Policy / member number" value={s.insurancePolicyNumber} set={(insurancePolicyNumber) => swimmer(s.id, { insurancePolicyNumber })} /><Field label="Group number" value={s.insuranceGroupNumber} set={(insuranceGroupNumber) => swimmer(s.id, { insuranceGroupNumber })} /><Field label="Insurance phone" type="tel" value={s.insurancePhone} set={(insurancePhone) => swimmer(s.id, { insurancePhone })} /></div>}<label className="registration-check"><input type="checkbox" checked={s.permissionForOTCMedication} onChange={(e) => swimmer(s.id, { permissionForOTCMedication: e.target.checked })} />Permission for team-approved over-the-counter medication</label></div>)}</Section>}
+      {step === 5 && <Section title="Agreements and signatures" intro="Teams can configure waivers, policies, and consent choices.">{config.agreements.map((a) => { const accepted = data.agreements[a.id] ?? { accepted: false, initials: "", acceptedAt: "" }; return <article className="registration-agreement" key={a.id}><h3>{a.title}{a.required && " *"}</h3><p>{a.body}</p><label className="registration-check"><input type="checkbox" checked={accepted.accepted} onChange={(e) => setData((d) => ({ ...d, agreements: { ...d.agreements, [a.id]: { ...accepted, accepted: e.target.checked, acceptedAt: e.target.checked ? new Date().toISOString() : "" } } }))} />I have read and agree</label>{a.requireInitials && <Field label="Initials" required value={accepted.initials} set={(initials) => setData((d) => ({ ...d, agreements: { ...d.agreements, [a.id]: { ...accepted, initials } } }))} />}</article>; })}</Section>}
+      {step === 6 && <Section title="Review and submit" intro="Confirm the registration is complete and accurate."><div className="registration-review"><Review title="Household" edit={() => setStep(1)}>{data.family.familyName}<br />{data.family.address1}, {data.family.city}, {data.family.state} {data.family.postalCode}</Review><Review title={`Guardians (${data.guardians.length})`} edit={() => setStep(2)}>{data.guardians.map((g, i) => <span key={i}>{g.firstName} {g.lastName} · {g.mobilePhone}</span>)}</Review><Review title={`Swimmers (${data.swimmers.length})`} edit={() => setStep(3)}>{data.swimmers.map((s) => <span key={s.id}>{s.firstName} {s.lastName} · {s.birthDate || "birth date missing"}</span>)}</Review><Review title="Agreements" edit={() => setStep(5)}>{Object.values(data.agreements).filter((a) => a.accepted).length} of {config.agreements.length} accepted</Review></div>{errors.length > 0 && <div className="registration-errors"><strong>Still needed</strong><ul>{errors.map((e) => <li key={e}>{e}</li>)}</ul></div>}<label className="registration-check registration-certify"><input required type="checkbox" />I certify this information is accurate and I am authorized to register these swimmers.</label></Section>}
+      <nav className="registration-navigation">{step > 0 && <button className="registration-back" onClick={() => setStep(step - 1)}><ChevronLeft size={18} /> Back</button>}<button disabled={busy} onClick={step === 6 ? submit : next}>{busy ? "Please wait…" : step === 6 ? "Submit registration" : "Save and continue"}{step < 6 && <ChevronRight size={18} />}</button></nav>
       {message && <p className="registration-message" role="status">{message}</p>}
-    </div>
-  </main>;
+    </div></div></div></main>;
 }
+
+function RepeatTitle({ label, removable, remove }: { label: string; removable: boolean; remove: () => void }) { return <div className="registration-repeat-heading"><h3>{label}</h3>{removable && <button onClick={remove}><Trash2 size={15} /> Remove</button>}</div>; }
+function Add({ label, onClick }: { label: string; onClick: () => void }) { return <button className="registration-add" onClick={onClick}><Plus size={16} /> {label}</button>; }
+function Review({ title, edit, children }: { title: string; edit: () => void; children: ReactNode }) { return <article><div><h3>{title}</h3><button onClick={edit}>Edit</button></div><div>{children}</div></article>; }

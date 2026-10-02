@@ -64,6 +64,7 @@ begin
       'purge_all_test_project_data', 'purge_test_project_data', 'purge_test_team_data',
       'reject_team_id_change', 'reset_all_test_client_data', 'resolve_site_hostname',
       'review_parent_registration', 'rollback_team_site', 'save_site_draft',
+      'submit_family_registration',
       'post_announcement', 'post_event_message', 'claim_job_slot', 'release_job_signup',
       'save_site_template', 'set_site_enabled', 'set_team_member_module_permission',
       'set_team_member_role', 'start_platform_support_session'
@@ -120,6 +121,8 @@ drop table if exists public.mock_checkout_sessions cascade;
 drop table if exists public.subscription_plans cascade;
 drop table if exists public.project_maintenance_settings cascade;
 drop table if exists public.family_contacts cascade;
+drop table if exists public.swimmer_registration_profiles cascade;
+drop table if exists public.family_registration_profiles cascade;
 drop table if exists public.platform_support_sessions cascade;
 drop table if exists public.platform_owners cascade;
 drop table if exists public.parent_registration_requests cascade;
@@ -158,7 +161,9 @@ where version in (
   '202609140004', '202609140005', '202609140006', '202609140007',
   '202609140008', '202609140009', '202609150001', '202609150002',
   '202609150003', '202609220001', '202609220002', '202609220003',
-  '202609220004', '202609220005'
+  '202609220004', '202609220005', '202609230001', '202609230002',
+  '202609230003', '202609230004', '202609230005', '202609230006',
+  '202609230007', '202609230008', '202609230009', '202610010001'
 );
 
 commit;

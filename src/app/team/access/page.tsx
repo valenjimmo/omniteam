@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { createBrowserClient } from "@supabase/ssr";
 import Link from "next/link";
+import { defaultRegistrationConfiguration, type RegistrationConfiguration, type RegistrationQuestionType } from "@/modules/omniathlete/registration/model";
 
 type Membership = { id: string; team_id: string; user_id: string;
   role: "OWNER" | "ADMIN" | "COACH" | "PARENT"; can_assign_access: boolean };
@@ -21,6 +22,7 @@ export default function TeamAccessPage() {
   const [requests, setRequests] = useState<Request[]>([]);
   const [slug, setSlug] = useState("");
   const [registrationOpen, setRegistrationOpen] = useState(false);
+  const [registrationConfig, setRegistrationConfig] = useState<RegistrationConfiguration>(defaultRegistrationConfiguration);
   const [message, setMessage] = useState("Loading team access…");
   const client = useMemo(() => {
     const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -35,7 +37,7 @@ export default function TeamAccessPage() {
       client.from("team_member_module_permissions").select("membership_id,module_key,access_level").eq("team_id", selectedTeamId),
       client.from("team_module_entitlements").select("module_key").eq("team_id", selectedTeamId),
       client.from("parent_registration_requests").select("id,family_name,swimmers").eq("team_id", selectedTeamId).eq("status", "PENDING"),
-      client.from("team_registration_settings").select("slug,registration_open").eq("team_id", selectedTeamId).maybeSingle(),
+      client.from("team_registration_settings").select("slug,registration_open,registration_configuration").eq("team_id", selectedTeamId).maybeSingle(),
     ]);
     const error = memberResult.error || permissionResult.error || entitlementResult.error || requestResult.error || settingResult.error;
     if (error) { setMessage(`Team access could not be loaded: ${error.message}`); return; }
@@ -52,6 +54,10 @@ export default function TeamAccessPage() {
     setRequests((requestResult.data ?? []) as Request[]);
     setSlug(settingResult.data?.slug ?? "");
     setRegistrationOpen(settingResult.data?.registration_open ?? false);
+    const configured = settingResult.data?.registration_configuration as RegistrationConfiguration | undefined;
+    setRegistrationConfig({ ...defaultRegistrationConfiguration, ...configured,
+      programs: configured?.programs ?? [], questions: configured?.questions ?? [],
+      agreements: configured?.agreements ?? defaultRegistrationConfiguration.agreements });
     setMessage("");
   }, [client]);
 
@@ -108,7 +114,7 @@ export default function TeamAccessPage() {
     if (!client) return;
     const { error } = await client.rpc("configure_team_registration", {
       target_team_id: teamId, target_slug: slug.trim().toLowerCase(),
-      open_registration: registrationOpen,
+      open_registration: registrationOpen, registration_config: registrationConfig,
     });
     setMessage(error ? error.message : "Registration settings saved.");
     if (!error) await loadTeam(teamId);
@@ -130,6 +136,24 @@ export default function TeamAccessPage() {
           <label><input type="checkbox" checked={registrationOpen} onChange={(e) => setRegistrationOpen(e.target.checked)} /> Open registration</label>
           <button onClick={saveRegistration}>Save</button></div>
         {slug && <p>Registration link: <code>/register/{slug}</code></p>}
+        <div className="registration-builder"><h3>Registration form</h3>
+          <label>Form title <input value={registrationConfig.title} onChange={(e) => setRegistrationConfig({ ...registrationConfig, title: e.target.value })} /></label>
+          <label>Introduction <textarea rows={3} value={registrationConfig.introduction} onChange={(e) => setRegistrationConfig({ ...registrationConfig, introduction: e.target.value })} /></label>
+          <div className="access-controls">
+            <label><input type="checkbox" checked={registrationConfig.collectInsurance} onChange={(e) => setRegistrationConfig({ ...registrationConfig, collectInsurance: e.target.checked })} /> Insurance</label>
+            <label><input type="checkbox" checked={registrationConfig.collectPhysician} onChange={(e) => setRegistrationConfig({ ...registrationConfig, collectPhysician: e.target.checked })} /> Physician and dentist</label>
+            <label><input type="checkbox" checked={registrationConfig.collectSchool} onChange={(e) => setRegistrationConfig({ ...registrationConfig, collectSchool: e.target.checked })} /> School</label>
+            <label><input type="checkbox" checked={registrationConfig.collectApparel} onChange={(e) => setRegistrationConfig({ ...registrationConfig, collectApparel: e.target.checked })} /> Apparel size</label>
+            <label><input type="checkbox" checked={registrationConfig.collectDemographics} onChange={(e) => setRegistrationConfig({ ...registrationConfig, collectDemographics: e.target.checked })} /> Demographics</label>
+          </div>
+          <h4>Programs and groups</h4>{registrationConfig.programs.map((program, index) => <div className="registration-builder-row" key={program.id}><input aria-label={`Program ${index + 1}`} value={program.name} onChange={(e) => setRegistrationConfig({ ...registrationConfig, programs: registrationConfig.programs.map((item) => item.id === program.id ? { ...item, name: e.target.value } : item) })} /><button className="access-muted-button" onClick={() => setRegistrationConfig({ ...registrationConfig, programs: registrationConfig.programs.filter((item) => item.id !== program.id) })}>Remove</button></div>)}
+          <button className="access-muted-button" onClick={() => setRegistrationConfig({ ...registrationConfig, programs: [...registrationConfig.programs, { id: crypto.randomUUID(), name: "New program" }] })}>Add program</button>
+          <h4>Custom questions</h4>{registrationConfig.questions.map((question) => <div className="registration-builder-question" key={question.id}><input aria-label="Question label" value={question.label} onChange={(e) => setRegistrationConfig({ ...registrationConfig, questions: registrationConfig.questions.map((item) => item.id === question.id ? { ...item, label: e.target.value } : item) })} /><select value={question.type} onChange={(e) => setRegistrationConfig({ ...registrationConfig, questions: registrationConfig.questions.map((item) => item.id === question.id ? { ...item, type: e.target.value as RegistrationQuestionType } : item) })}><option value="short_text">Short text</option><option value="long_text">Long text</option><option value="yes_no">Yes / no</option><option value="date">Date</option><option value="single_select">Single choice</option></select><select value={question.appliesTo} onChange={(e) => setRegistrationConfig({ ...registrationConfig, questions: registrationConfig.questions.map((item) => item.id === question.id ? { ...item, appliesTo: e.target.value as "family" | "swimmer" } : item) })}><option value="family">Family</option><option value="swimmer">Each swimmer</option></select>{question.type === "single_select" && <input aria-label="Choices separated by commas" placeholder="Choices, separated by commas" value={(question.options ?? []).join(", ")} onChange={(e) => setRegistrationConfig({ ...registrationConfig, questions: registrationConfig.questions.map((item) => item.id === question.id ? { ...item, options: e.target.value.split(",").map((value) => value.trim()).filter(Boolean) } : item) })} />}<label><input type="checkbox" checked={question.required} onChange={(e) => setRegistrationConfig({ ...registrationConfig, questions: registrationConfig.questions.map((item) => item.id === question.id ? { ...item, required: e.target.checked } : item) })} /> Required</label><button className="access-muted-button" onClick={() => setRegistrationConfig({ ...registrationConfig, questions: registrationConfig.questions.filter((item) => item.id !== question.id) })}>Remove</button></div>)}
+          <button className="access-muted-button" onClick={() => setRegistrationConfig({ ...registrationConfig, questions: [...registrationConfig.questions, { id: crypto.randomUUID(), label: "New question", type: "short_text", required: false, appliesTo: "family" }] })}>Add question</button>
+          <h4>Agreements and waivers</h4>{registrationConfig.agreements.map((agreement) => <div className="registration-builder-agreement" key={agreement.id}><input aria-label="Agreement title" value={agreement.title} onChange={(e) => setRegistrationConfig({ ...registrationConfig, agreements: registrationConfig.agreements.map((item) => item.id === agreement.id ? { ...item, title: e.target.value } : item) })} /><textarea aria-label="Agreement text" rows={3} value={agreement.body} onChange={(e) => setRegistrationConfig({ ...registrationConfig, agreements: registrationConfig.agreements.map((item) => item.id === agreement.id ? { ...item, body: e.target.value } : item) })} /><label><input type="checkbox" checked={agreement.required} onChange={(e) => setRegistrationConfig({ ...registrationConfig, agreements: registrationConfig.agreements.map((item) => item.id === agreement.id ? { ...item, required: e.target.checked } : item) })} /> Required</label><label><input type="checkbox" checked={agreement.requireInitials} onChange={(e) => setRegistrationConfig({ ...registrationConfig, agreements: registrationConfig.agreements.map((item) => item.id === agreement.id ? { ...item, requireInitials: e.target.checked } : item) })} /> Require initials</label></div>)}
+          <button className="access-muted-button" onClick={() => setRegistrationConfig({ ...registrationConfig, agreements: [...registrationConfig.agreements, { id: crypto.randomUUID(), title: "New agreement", body: "", required: true, requireInitials: false }] })}>Add agreement</button>
+          <p><button onClick={saveRegistration}>Save registration form</button></p>
+        </div>
       </section>}
       <section className="access-section"><h2>Pending families</h2>
         {requests.length === 0 && <p>No pending registrations.</p>}
