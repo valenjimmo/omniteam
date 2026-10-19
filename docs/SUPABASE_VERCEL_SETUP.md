@@ -57,4 +57,6 @@ Run that setup **only in the dedicated test project**. The purge also requires t
 
 `supabase/scripts/delete_team_and_data.sql` is a separate hard-delete maintenance path, **not** the account-closure action. It deletes one team and all current team-owned rows. Direct deletion of a team also has a database cleanup trigger. Shared Auth users/profiles and parent organizations remain. Future modules must add their tables to the cleanup function or use tenant-scoped cascading foreign keys; a missing dependent FK should make deletion fail rather than leave an orphan.
 
+The `/platform` dashboard also exposes this as a separate **Permanently delete** workflow. It requires an AAL2 platform-owner session, previews affected database records and OmniSite assets, requires the exact team name plus `DELETE PERMANENTLY`, and executes through a server-only service-role route. The database operation records a minimal surviving platform security event and removes the organization only when no other team references it.
+
 Run `supabase/scripts/preview_test_project_data.sql`, then `supabase/scripts/dry_run_test_project_purge.sql`, and make a backup before the actual project-wide purge. Neither cleanup script is run automatically by deployment.

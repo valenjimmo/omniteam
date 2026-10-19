@@ -155,4 +155,34 @@ select pg_temp.expect((select count(*)=0 from public.site_domains where team_id=
 select pg_temp.expect((select count(*)=0 from public.site_assets where team_id='30000000-0000-4000-8000-000000000001'),'purge assets');
 select pg_temp.expect((select count(*)>=3 from public.site_templates),'purge preserves templates');
 select pg_temp.expect((select count(*)=4 from auth.users where email like 'os-%@example.test'),'purge preserves users');
+-- Permanent deletion is platform-only, MFA-gated at preview, service-only at mutation,
+-- preserves shared identities, and cannot affect another tenant.
+select set_config('request.jwt.claims','{"sub":"10000000-0000-4000-8000-000000000001","role":"authenticated","aal":"aal2"}',true);
+select set_config('request.jwt.claim.sub','10000000-0000-4000-8000-000000000001',true);
+set local role authenticated;
+select pg_temp.denied($q$select public.preview_team_hard_delete('30000000-0000-4000-8000-000000000002')$q$);
+select pg_temp.denied($q$select public.delete_team_and_data('30000000-0000-4000-8000-000000000002','Team B','10000000-0000-4000-8000-000000000001')$q$);
+reset role;
+select set_config('request.jwt.claims','{"sub":"10000000-0000-4000-8000-000000000003","role":"authenticated","aal":"aal2"}',true);
+select set_config('request.jwt.claim.sub','10000000-0000-4000-8000-000000000003',true);
+set local role authenticated;
+select pg_temp.denied($q$select public.preview_team_hard_delete('30000000-0000-4000-8000-000000000002')$q$);
+reset role;
+select set_config('request.jwt.claims','{"sub":"10000000-0000-4000-8000-000000000004","role":"authenticated","aal":"aal1"}',true);
+select set_config('request.jwt.claim.sub','10000000-0000-4000-8000-000000000004',true);
+set local role authenticated;
+select pg_temp.denied($q$select public.preview_team_hard_delete('30000000-0000-4000-8000-000000000002')$q$);
+reset role;
+select set_config('request.jwt.claims','{"sub":"10000000-0000-4000-8000-000000000004","role":"authenticated","aal":"aal2"}',true);
+set local role authenticated;
+select pg_temp.expect((public.preview_team_hard_delete('30000000-0000-4000-8000-000000000002')->>'teamName')='Team B','AAL2 platform owner previews exact team');
+reset role;
+set local role service_role;
+select public.delete_team_and_data('30000000-0000-4000-8000-000000000002','Team B','10000000-0000-4000-8000-000000000004');
+reset role;
+select pg_temp.expect(not exists(select 1 from public.teams where id='30000000-0000-4000-8000-000000000002'),'target team deleted');
+select pg_temp.expect(exists(select 1 from public.teams where id='30000000-0000-4000-8000-000000000001'),'other team unaffected');
+select pg_temp.expect((select count(*)=4 from auth.users where email like 'os-%@example.test'),'hard delete preserves Auth users');
+select pg_temp.expect(exists(select 1 from public.security_events where event_type='platform_team_permanently_deleted' and team_id is null),'surviving minimal platform audit');
+select pg_temp.expect(exists(select 1 from public.organizations where id='20000000-0000-4000-8000-000000000001'),'shared organization preserved');
 rollback;

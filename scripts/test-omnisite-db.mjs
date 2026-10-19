@@ -28,6 +28,12 @@ try {
       "create extension if not exists pg_jsonschema with schema extensions;",
       "-- Test-only: pg_jsonschema shim installed above.",
     );
+    // PGlite rejects PostgreSQL's composite-record plus scalar INTO form.
+    // Split that one statement in the disposable runner only.
+    sql = sql.replace(
+      "select s, js.signup_deadline into target_signup, deadline\n  from public.job_signups s join public.job_slots js on js.team_id=s.team_id and js.id=s.slot_id\n  where s.team_id=target_team_id and s.id=target_signup_id and s.status='claimed' for update of s;",
+      "select s.* into target_signup from public.job_signups s where s.team_id=target_team_id and s.id=target_signup_id and s.status='claimed' for update;\n  select js.signup_deadline into deadline from public.job_slots js where js.team_id=target_team_id and js.id=target_signup.slot_id;",
+    );
     try {
       await db.exec(sql);
     } catch (e) {
