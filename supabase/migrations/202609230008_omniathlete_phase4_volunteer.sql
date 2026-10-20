@@ -162,15 +162,15 @@ end $$;
 
 create function public.release_job_signup(target_team_id uuid, target_signup_id uuid)
 returns void language plpgsql security definer set search_path = public as $$
-declare target_signup public.job_signups%rowtype; deadline timestamptz;
+declare signup_household_id uuid; deadline timestamptz;
 begin
   if not public.has_omnivolunteer(target_team_id) then raise exception 'OmniVolunteer is not enabled'; end if;
-  select s, js.signup_deadline into target_signup, deadline
+  select s.household_id, js.signup_deadline into signup_household_id, deadline
   from public.job_signups s join public.job_slots js on js.team_id=s.team_id and js.id=s.slot_id
   where s.team_id=target_team_id and s.id=target_signup_id and s.status='claimed' for update of s;
   if not found then raise exception 'Active signup not found'; end if;
   if deadline < now() then raise exception 'The signup deadline has passed'; end if;
-  if not exists(select 1 from public.memberships m where m.team_id=target_team_id and m.profile_id=auth.uid() and m.status='active' and (m.household_id=target_signup.household_id or m.role in ('team_admin','volunteer_coord'))) then
+  if not exists(select 1 from public.memberships m where m.team_id=target_team_id and m.profile_id=auth.uid() and m.status='active' and (m.household_id=signup_household_id or m.role in ('team_admin','volunteer_coord'))) then
     raise exception 'Signup access denied';
   end if;
   update public.job_signups set status='released', released_at=now(), updated_at=now() where team_id=target_team_id and id=target_signup_id;
