@@ -37,6 +37,7 @@ export function AuthForm({ mode }: { mode: "login" | "signup" }) {
       <label>Password<input name="password" type="password" minLength={8} autoComplete={mode === "login" ? "current-password" : "new-password"} required /></label>
       <button disabled={busy}>{busy ? "Please wait…" : mode === "login" ? "Sign in" : "Create account"}</button>
     </form>
+    {mode === "login" && <footer><Link href="/forgot-password">Forgot your password?</Link></footer>}
     {message && <p className="oa-notice" role="status">{message}</p>}
     <footer>{mode === "login" ? <>New here? <Link href="/signup">Create an account</Link></> : <>Already registered? <Link href="/login">Sign in</Link></>}</footer>
   </section></main>;

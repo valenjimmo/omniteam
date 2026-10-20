@@ -82,7 +82,7 @@ export default function RegistrationPage() {
       if (mode === "signup") {
         const { data: result, error } = await client.auth.signUp({ email: account.email, password: account.password, options: { data: { first_name: account.firstName.trim(), last_name: account.lastName.trim() }, emailRedirectTo: authCallbackUrl(`/register/${slug}`) } });
         if (error) throw error;
-        if (!result.session) { setMessage("Check your email to verify your account. Your draft is saved on this device; return here and sign in to continue."); return false; }
+        if (!result.session) { setMessage("If this is a new account, check your email to verify it. If you have used this email before, sign in or reset your password. Your draft is saved on this device."); return false; }
       } else { const { error } = await client.auth.signInWithPassword({ email: account.email, password: account.password }); if (error) throw error; }
       setAuthenticated(true);
       setData((d) => ({ ...d, family: { ...d.family, billingEmail: d.family.billingEmail || account.email, billingContactName: d.family.billingContactName || `${account.firstName} ${account.lastName}`.trim() }, guardians: d.guardians.map((g, i) => i ? g : { ...g, firstName: g.firstName || account.firstName, lastName: g.lastName || account.lastName, email: g.email || account.email }) }));
