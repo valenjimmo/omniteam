@@ -9,7 +9,7 @@ type Membership = { id: string; team_id: string; user_id: string;
   role: "OWNER" | "ADMIN" | "COACH" | "PARENT"; can_assign_access: boolean };
 type Permission = { membership_id: string; module_key: string; access_level: "VIEW" | "MANAGE" };
 type Entitlement = { module_key: string };
-type Request = { id: string; family_name: string; swimmers: { first_name: string; last_name: string }[] };
+type Request = { id: string; family_name: string; swimmers: { first_name: string; last_name: string }[]; status: "PENDING" | "APPROVED" | "REJECTED"; created_at: string };
 type Profile = { id: string; first_name: string; last_name: string; email: string };
 
 export default function TeamAccessPage() {
@@ -36,7 +36,7 @@ export default function TeamAccessPage() {
       client.from("team_memberships").select("id,team_id,user_id,role,can_assign_access").eq("team_id", selectedTeamId),
       client.from("team_member_module_permissions").select("membership_id,module_key,access_level").eq("team_id", selectedTeamId),
       client.from("team_module_entitlements").select("module_key").eq("team_id", selectedTeamId),
-      client.from("parent_registration_requests").select("id,family_name,swimmers").eq("team_id", selectedTeamId).eq("status", "PENDING"),
+      client.from("parent_registration_requests").select("id,family_name,swimmers,status,created_at").eq("team_id", selectedTeamId).order("created_at", { ascending: false }),
       client.from("team_registration_settings").select("slug,registration_open,registration_configuration").eq("team_id", selectedTeamId).maybeSingle(),
     ]);
     const error = memberResult.error || permissionResult.error || entitlementResult.error || requestResult.error || settingResult.error;
@@ -104,7 +104,7 @@ export default function TeamAccessPage() {
   async function review(requestId: string, approve: boolean) {
     if (!client) return;
     const { error } = await client.rpc("review_parent_registration", {
-      target_request_id: requestId, approve,
+      target_team_id: teamId, target_request_id: requestId, approve,
     });
     setMessage(error ? error.message : approve ? "Family approved." : "Registration declined.");
     if (!error) await loadTeam(teamId);
@@ -155,12 +155,12 @@ export default function TeamAccessPage() {
           <p><button onClick={saveRegistration}>Save registration form</button></p>
         </div>
       </section>}
-      <section className="access-section"><h2>Pending families</h2>
-        {requests.length === 0 && <p>No pending registrations.</p>}
+      <section className="access-section"><h2>Family registrations</h2>
+        {requests.length === 0 && <p>No family registrations.</p>}
         {requests.map((request) => <div className="access-person" key={request.id}>
           <div><strong>{request.family_name}</strong><small>{request.swimmers.map((s) => `${s.first_name} ${s.last_name}`).join(", ")}</small></div>
-          <button onClick={() => review(request.id, true)}>Approve</button>
-          <button className="access-muted-button" onClick={() => review(request.id, false)}>Decline</button>
+          {request.status === "PENDING" ? <><button onClick={() => review(request.id, true)}>Approve</button>
+          <button className="access-muted-button" onClick={() => review(request.id, false)}>Decline</button></> : <strong>{request.status === "APPROVED" ? "Approved" : "Rejected"}</strong>}
         </div>)}
       </section>
       <section className="access-section"><h2>Team members</h2>

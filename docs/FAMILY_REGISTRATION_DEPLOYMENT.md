@@ -75,6 +75,34 @@ After deployment, verify in the application:
 6. Repeat the read and approval checks with a second team to confirm that neither
    team can see, approve, or link the other team's registration data.
 
+### Reproducible local journey test
+
+Start the local Supabase stack, apply all tracked migrations, and run the app on
+port 3100. Then run the two-identity test:
+
+```bash
+supabase start
+supabase db reset
+NEXT_PUBLIC_SUPABASE_URL=http://127.0.0.1:54321 \
+NEXT_PUBLIC_SUPABASE_ANON_KEY=<local-anon-key> npm run dev -- --port 3100
+API_URL=http://127.0.0.1:54321 ANON_KEY=<local-anon-key> \
+SERVICE_ROLE_KEY=<local-service-role-key> \
+FAMILY_TEST_APP_URL=http://127.0.0.1:3100 npm run test:family-registration
+```
+
+The test creates separate owner and guardian browser contexts and a second team,
+submits through `/register/<slug>`, reviews through `/team/access`, and verifies
+the approved result at `/my-family`. It also checks that the pending request
+creates no membership or family link, rejection creates nothing, and team B
+cannot read or approve team A's request or link/view its family records.
+
+Local Supabase captures verification mail at `http://127.0.0.1:54324`. For a
+manual test, create the account in the registration page, open that message in
+the local mail viewer, follow its confirmation link, and return to the same
+registration URL. The automated test uses the local service-role admin API to
+create test users with `email_confirm: true`; this is test setup only and does
+not alter or bypass the production sign-up and verification code path.
+
 ## Production deployment
 
 Use the same commands only after the test-project verification succeeds. Take a

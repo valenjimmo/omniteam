@@ -1,4 +1,4 @@
--- Read-only post-deployment verification for migration 202610010001.
+-- Read-only post-deployment verification for the complete registration journey.
 do $verification$
 declare
   missing text[] := '{}';
@@ -22,11 +22,14 @@ begin
   if to_regprocedure('public.submit_family_registration(uuid,jsonb)') is null then
     missing := array_append(missing, 'submit_family_registration RPC');
   end if;
+  if to_regprocedure('public.get_family_registration(text)') is null then
+    missing := array_append(missing, 'get_family_registration RPC');
+  end if;
+  if to_regprocedure('public.review_parent_registration(uuid,uuid,boolean)') is null then
+    missing := array_append(missing, 'tenant-bound review_parent_registration RPC');
+  end if;
   if to_regprocedure('public.configure_team_registration(uuid,text,boolean,jsonb)') is null then
     missing := array_append(missing, 'configure_team_registration RPC');
-  end if;
-  if to_regprocedure('public.review_parent_registration(uuid,boolean)') is null then
-    missing := array_append(missing, 'review_parent_registration RPC');
   end if;
   if not coalesce((select relrowsecurity from pg_class where oid=to_regclass('public.family_registration_profiles')),false) then
     missing := array_append(missing, 'family_registration_profiles RLS');
@@ -38,6 +41,10 @@ begin
     select 1 from supabase_migrations.schema_migrations
     where version='202610010001'
   ) then missing := array_append(missing, 'migration history 202610010001'); end if;
+  if not exists (
+    select 1 from supabase_migrations.schema_migrations
+    where version='202610190003'
+  ) then missing := array_append(missing, 'migration history 202610190003'); end if;
   if cardinality(missing) > 0 then
     raise exception 'Family registration verification failed: %', array_to_string(missing, ', ');
   end if;
@@ -47,4 +54,5 @@ $verification$;
 
 select version, name
 from supabase_migrations.schema_migrations
-where version = '202610010001';
+where version in ('202610010001', '202610190003')
+order by version;

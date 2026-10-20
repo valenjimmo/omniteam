@@ -64,7 +64,17 @@ export default function MyFamilyPage() {
       }
       if (mounted) {
         setFamilies(output);
-        setMessage(output.length ? "" : "No approved family is linked to your account yet.");
+        if (output.length) setMessage("");
+        else {
+          const { data: registrations } = await client.from("parent_registration_requests")
+            .select("status").eq("user_id", auth.user.id).order("created_at", { ascending: false }).limit(1);
+          const status = registrations?.[0]?.status;
+          setMessage(status === "PENDING"
+            ? "Your registration is pending. Family access begins only after team approval."
+            : status === "REJECTED"
+              ? "Your registration was not approved. No family access was granted."
+              : "No approved family is linked to your account yet.");
+        }
       }
     }
     void load();
