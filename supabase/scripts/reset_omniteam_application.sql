@@ -53,6 +53,7 @@ begin
       'is_active_team_member', 'is_family_guardian', 'is_platform_owner',
       'is_platform_supporting_team', 'is_public_omnisite', 'is_swimmer_guardian',
       'is_verified_user', 'list_platform_team_modules', 'list_platform_team_overview',
+      'list_platform_team_usable_links',
       'list_platform_teams', 'omnisite_immutable_team_id', 'os_actor_manage',
       'os_assert_assets', 'os_asset_operation', 'os_clear_limits', 'os_domain_operation',
       'os_draft', 'os_immutable_publication', 'os_paths', 'os_public_media_path',

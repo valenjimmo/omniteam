@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import "./globals.css";
+import "./platform-links.css";
 
 export const metadata: Metadata = {
   title: "OmniTeam | Everything your team needs, together",
