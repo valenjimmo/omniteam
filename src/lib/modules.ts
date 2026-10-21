@@ -1,5 +1,5 @@
 export const OMNITEAM_MODULES = [
-  { key:"omniathlete", name:"OmniAthlete", description:"Swimmers, families, groups, and attendance", href:"/omniathlete", available:true },
+  { key:"omniathlete", name:"OmniAthlete", description:"Swimmers, families, groups, and attendance", href:"/team/access#registration", available:true },
   { key:"omnischedule", name:"OmniSchedule", description:"Practices, pool schedules, calendars, and events", href:"/dashboard", available:false },
   { key:"omnimeet", name:"OmniMeet", description:"Meet registration, selections, fees, and entries", href:"/dashboard", available:false },
   { key:"omnivolunteer", name:"OmniVolunteer", description:"Jobs, shifts, signups, and service hours", href:"/dashboard", available:false },

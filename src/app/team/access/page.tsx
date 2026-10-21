@@ -24,6 +24,7 @@ export default function TeamAccessPage() {
   const [registrationOpen, setRegistrationOpen] = useState(false);
   const [registrationConfig, setRegistrationConfig] = useState<RegistrationConfiguration>(defaultRegistrationConfiguration);
   const [message, setMessage] = useState("Loading team access…");
+  const [copyMessage, setCopyMessage] = useState("");
   const client = useMemo(() => {
     const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
     const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
@@ -74,7 +75,10 @@ export default function TeamAccessPage() {
         || (m.role === "ADMIN" && m.can_assign_access));
       setOwnMemberships(available);
       if (!available.length) { setMessage("You do not have permission to manage team access."); return; }
-      setTeamId(available[0].team_id);
+      const requestedTeamId = new URLSearchParams(window.location.search).get("team");
+      setTeamId(available.some((membership) => membership.team_id === requestedTeamId)
+        ? requestedTeamId!
+        : available[0].team_id);
     }
     void loadOwn();
   }, [client]);
@@ -120,22 +124,34 @@ export default function TeamAccessPage() {
     if (!error) await loadTeam(teamId);
   }
 
+  async function copyRegistrationLink() {
+    if (!slug) return;
+    const url = new URL(`/register/${encodeURIComponent(slug)}`, window.location.origin).toString();
+    try {
+      await navigator.clipboard.writeText(url);
+      setCopyMessage("Registration link copied.");
+    } catch {
+      setCopyMessage("Copy was unavailable. Open the registration page and copy its address.");
+    }
+  }
+
   const isOwner = ownMemberships.some((m) => m.team_id === teamId && m.role === "OWNER");
   return <main className="access-page"><div className="access-wrap">
-    <Link href="/" className="registration-brand">Omni<span>Team</span></Link>
-    <p className="registration-kicker">TEAM SETTINGS</p>
-    <h1>People and access</h1>
+    <Link href="/dashboard" className="registration-brand">Omni<span>Team</span> / OmniAthlete</Link>
+    <p className="registration-kicker">TEAM MANAGEMENT</p>
+    <h1>Registration, people, and access</h1>
     {ownMemberships.length > 1 && <label>Team <select value={teamId} onChange={(e) => setTeamId(e.target.value)}>
       {ownMemberships.map((m) => <option key={m.team_id} value={m.team_id}>{m.team_id}</option>)}
     </select></label>}
     {message && <p className="registration-message" role="status">{message}</p>}
     {teamId && <>
-      {isOwner && <section className="access-section"><h2>Parent registration</h2>
+      {isOwner && <section className="access-section" id="registration"><h2>Family registration</h2>
         <p>Share the link with families after opening registration.</p>
         <div className="access-controls"><label>Team link name <input value={slug} onChange={(e) => setSlug(e.target.value)} placeholder="team-name" /></label>
           <label><input type="checkbox" checked={registrationOpen} onChange={(e) => setRegistrationOpen(e.target.checked)} /> Open registration</label>
           <button onClick={saveRegistration}>Save</button></div>
-        {slug && <p>Registration link: <code>/register/{slug}</code></p>}
+        {slug && <div className="registration-share"><div><strong>Your team registration page</strong><a href={`/register/${encodeURIComponent(slug)}`} target="_blank" rel="noreferrer">/register/{slug}</a><small>{registrationOpen ? "Open for registrations" : "Currently closed"}</small></div><div><button type="button" onClick={copyRegistrationLink}>Copy link</button><Link href={`/register/${encodeURIComponent(slug)}`} target="_blank">Open page</Link></div></div>}
+        {copyMessage && <p className="registration-message" role="status">{copyMessage}</p>}
         <div className="registration-builder"><h3>Registration form</h3>
           <label>Form title <input value={registrationConfig.title} onChange={(e) => setRegistrationConfig({ ...registrationConfig, title: e.target.value })} /></label>
           <label>Introduction <textarea rows={3} value={registrationConfig.introduction} onChange={(e) => setRegistrationConfig({ ...registrationConfig, introduction: e.target.value })} /></label>
