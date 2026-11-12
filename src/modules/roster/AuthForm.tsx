@@ -23,14 +23,14 @@ export function AuthForm({ mode }: { mode: "login" | "signup" }) {
     } else {
       const firstName = String(data.get("firstName") ?? "").trim();
       const lastName = String(data.get("lastName") ?? "").trim();
-      const { error } = await client.auth.signUp({ email, password, options: { data: { first_name: firstName, last_name: lastName }, emailRedirectTo: `${location.origin}/auth/callback?next=/join` } });
-      setMessage(error?.message ?? "Check your email to confirm your account, then join your team."); setBusy(false);
+      const { error } = await client.auth.signUp({ email, password, options: { data: { first_name: firstName, last_name: lastName }, emailRedirectTo: `${location.origin}/auth/callback?next=/register` } });
+      setMessage(error?.message ?? "Check your email to confirm your account, then choose the club you want to join."); setBusy(false);
     }
   }
   return <main className="oa-auth"><section>
     <Link href="/" className="oa-wordmark">Omni<span>Athlete</span></Link>
-    <p className="oa-eyebrow">HARBOR SHARKS</p><h1>{mode === "login" ? "Welcome back" : "Create your family account"}</h1>
-    <p>{mode === "login" ? "Sign in to your team home." : "One login keeps your whole household together."}</p>
+    <p className="oa-eyebrow">OMNITEAM ACCOUNT</p><h1>{mode === "login" ? "Welcome back" : "Create your account"}</h1>
+    <p>{mode === "login" ? "Sign in to access the clubs you belong to." : "Create your individual login, then choose a club to join."}</p>
     <form onSubmit={submit}>
       {mode === "signup" && <div className="oa-form-row"><label>First name<input name="firstName" required /></label><label>Last name<input name="lastName" required /></label></div>}
       <label>Email<input name="email" type="email" autoComplete="email" required /></label>
@@ -39,6 +39,6 @@ export function AuthForm({ mode }: { mode: "login" | "signup" }) {
     </form>
     {mode === "login" && <footer><Link href="/forgot-password">Forgot your password?</Link></footer>}
     {message && <p className="oa-notice" role="status">{message}</p>}
-    <footer>{mode === "login" ? <>New here? <Link href="/signup">Create an account</Link></> : <>Already registered? <Link href="/login">Sign in</Link></>}</footer>
+    <footer>{mode === "login" ? <>New here? <Link href="/signup">Create an account</Link></> : <>Already registered? <Link href="/login">Sign in</Link></>} · <Link href="/register">Join a club</Link> · <Link href="/subscribe">Register a club</Link></footer>
   </section></main>;
 }
