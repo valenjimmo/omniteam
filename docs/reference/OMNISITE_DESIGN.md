@@ -1,6 +1,6 @@
 # OmniSite design
 
-Status: the next local milestone is implemented. The authoritative implementation/operations notes are in [OMNISITE_OPERATIONS.md](OMNISITE_OPERATIONS.md), with [client DNS instructions](OMNISITE_CLIENT_DNS.md). The milestone extends the existing schema with revision-checked editing/publishing, private media, a structured editor, explicit catalog-write authority, and managed/custom-host routing. No remote migrations, DNS, or deployment changes have been made. Local PostgreSQL role tests use a pg_jsonschema shim; full Supabase validation is still required. The canonical hierarchy remains in [OMNITEAM_STRUCTURE.md](OMNITEAM_STRUCTURE.md).
+Status: the next local milestone is implemented. The authoritative implementation/operations notes are in [OMNISITE_OPERATIONS.md](OMNISITE_OPERATIONS.md), with [client DNS instructions](OMNISITE_CLIENT_DNS.md). The milestone extends the existing schema with revision-checked editing/publishing, private media, a structured editor, explicit catalog-write authority, and managed/custom-host routing. No remote migrations, DNS, or deployment changes have been made. Local PostgreSQL role tests use a pg_jsonschema shim; full Supabase validation is still required. The canonical hierarchy remains in [OMNITEAM_STRUCTURE.md](../OMNITEAM_STRUCTURE.md).
 
 ## Goal and user journeys
 
@@ -36,7 +36,7 @@ Any server function, revalidation job, cache key, image transform, search index,
 
 ## First delivery slice
 
-1. Migration and RLS for template catalog, team sites/pages/assets/publications, plus storage policies and lifecycle cleanup. Follow [DATABASE_CHANGE_WORKFLOW.md](DATABASE_CHANGE_WORKFLOW.md); do not apply migrations implicitly during Vercel deployment.
+1. Migration and RLS for template catalog, team sites/pages/assets/publications, plus storage policies and lifecycle cleanup. Follow [DATABASE_CHANGE_WORKFLOW.md](../DATABASE_CHANGE_WORKFLOW.md); do not apply migrations implicitly during Vercel deployment.
 2. Platform-owner template manager: create and duplicate template configurations from approved layouts/sections, preview with sample content, and publish/retire versions.
 3. Team owner/editor flow: choose template, set colors, upload logo, edit Home/About/Contact starter pages, preview, publish, and roll back one publication.
 4. Public site route with safe tenant resolution, responsive rendering, SEO metadata, and unpublished/archived behavior.

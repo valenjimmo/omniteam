@@ -19,7 +19,7 @@ function fail(message) {
 
 function loadEnvironment() {
   if (!existsSync(environmentPath)) {
-    fail("Missing .supabase.env. See docs/FAMILY_REGISTRATION_DEPLOYMENT.md.");
+    fail("Missing .supabase.env. See docs/reference/FAMILY_REGISTRATION_DEPLOYMENT.md.");
   }
   for (const line of readFileSync(environmentPath, "utf8").split(/\r?\n/)) {
     const match = line.match(/^([A-Z][A-Z0-9_]*)=(.*)$/);

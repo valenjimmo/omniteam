@@ -1,6 +1,6 @@
 # Current OmniTeam code structure
 
-The approved product hierarchy is `OMNITEAM_STRUCTURE.md`. This document is the **implemented repository inventory**, so it can be compared with that hierarchy before adding or removing code.
+The approved product hierarchy is `../OMNITEAM_STRUCTURE.md`. This document is the **implemented repository inventory**, so it can be compared with that hierarchy before adding or removing code.
 
 ```text
 omniteam/
@@ -9,9 +9,12 @@ omniteam/
 │   ├── OMNITEAM_STRUCTURE.md         approved products and platform capabilities
 │   ├── PRODUCT_STRUCTURE.md          architecture and implementation status
 │   ├── TENANT_ISOLATION.md           multi-tenant security requirements
-│   ├── ACCESS_MODEL.md               platform/team owners, parents, permissions
-│   ├── CURRENT_STRUCTURE.md          this inventory
-│   └── SUPABASE_VERCEL_SETUP.md      deployment and test setup
+│   ├── DATABASE_CHANGE_WORKFLOW.md    required schema-change process
+│   ├── reference/                    design, operations, and current-state docs
+│   │   ├── ACCESS_MODEL.md           platform/team owners, parents, permissions
+│   │   ├── CURRENT_STRUCTURE.md      this inventory
+│   │   └── SUPABASE_VERCEL_SETUP.md  deployment and test setup
+│   └── prompts/                      reusable build prompts and audit backlog
 ├── packages/domain/src/              attendance calculations only
 ├── src/app/
 │   ├── page.tsx                       public OmniTeam landing page (hard-coded cards)

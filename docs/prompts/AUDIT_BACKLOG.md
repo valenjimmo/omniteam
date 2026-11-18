@@ -6,9 +6,10 @@ not by itself authorize a product, architecture, database, or entitlement
 change.
 
 Before implementing an item, confirm product names and ownership against
-`OMNITEAM_STRUCTURE.md`, architecture guidance against `PRODUCT_STRUCTURE.md`,
-tenant requirements against `TENANT_ISOLATION.md`, and database work against
-`DATABASE_CHANGE_WORKFLOW.md`.
+`docs/OMNITEAM_STRUCTURE.md`, architecture guidance against
+`docs/PRODUCT_STRUCTURE.md`, tenant requirements against
+`docs/TENANT_ISOLATION.md`, and database work against
+`docs/DATABASE_CHANGE_WORKFLOW.md`.
 
 ## Status definitions
 
@@ -207,7 +208,7 @@ and proposed Supabase work only; no schema or application changes were made.
 ### Implementation acceptance criteria
 
 - All schema changes are delivered in a tracked migration following
-  `DATABASE_CHANGE_WORKFLOW.md`.
+  `docs/DATABASE_CHANGE_WORKFLOW.md`.
 - The chosen club-profile storage preserves `team_id` as the security boundary,
   has appropriate RLS, and includes two-team isolation tests.
 - Required fields are backfilled before `not null` constraints are applied.

@@ -1,6 +1,6 @@
 # OmniTeam access model
 
-This document records the owner's current product decisions and the implementation boundaries. Tenant isolation rules are in `TENANT_ISOLATION.md`.
+This document records the owner's current product decisions and the implementation boundaries. Tenant isolation rules are in `docs/TENANT_ISOLATION.md`.
 
 ## Owners and administrators
 
@@ -16,7 +16,7 @@ The owner's current preference is **one parent login per family**. Additional gu
 
 ## Provisioning
 
-Before use, reconcile and apply migrations according to [DATABASE_CHANGE_WORKFLOW.md](DATABASE_CHANGE_WORKFLOW.md). Create the initial team OWNER membership through a trusted process after the Auth user and profile exist. Provision the OmniTeam platform owner through a trusted database/service-role process by inserting the intended Auth user ID into `platform_owners`. Never expose the service-role key in a browser, and never offer public or team-admin writes to `platform_owners`.
+Before use, reconcile and apply migrations according to [DATABASE_CHANGE_WORKFLOW.md](../DATABASE_CHANGE_WORKFLOW.md). Create the initial team OWNER membership through a trusted process after the Auth user and profile exist. Provision the OmniTeam platform owner through a trusted database/service-role process by inserting the intended Auth user ID into `platform_owners`. Never expose the service-role key in a browser, and never offer public or team-admin writes to `platform_owners`.
 
 ## Platform-owner login
 

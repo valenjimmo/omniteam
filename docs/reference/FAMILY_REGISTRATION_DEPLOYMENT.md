@@ -12,7 +12,7 @@ explicit test purge or hard delete.
 
 ## Prerequisites
 
-1. Read `DATABASE_CHANGE_WORKFLOW.md`, especially the migration-history
+1. Read `docs/DATABASE_CHANGE_WORKFLOW.md`, especially the migration-history
    reconciliation rules. Do not deploy to a project with uncertain or partially
    recorded migration history.
 2. Install the Supabase CLI and authenticate:

@@ -167,7 +167,7 @@ operators must review domain ownership changes and stale configuration.
 ## Migration and administrator checklist
 
 1. Back up the database and Storage independently. Reconcile existing migration
-   history using `DATABASE_CHANGE_WORKFLOW.md` before any `db push`.
+   history using `docs/DATABASE_CHANGE_WORKFLOW.md` before any `db push`.
 2. Apply prior migrations, then these forward-only migrations in order:
    - `202609220001_omnisite_schema.sql` (pg_jsonschema and frozen validators).
    - `202609220002_omnisite_operations.sql` (private bucket, RPC writes, revisions,

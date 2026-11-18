@@ -4,7 +4,7 @@ The checkout is linked locally to the existing `valenjimmos-projects/omniteam` V
 
 ## 1. Apply the schema
 
-Follow [DATABASE_CHANGE_WORKFLOW.md](DATABASE_CHANGE_WORKFLOW.md) to reconcile SQL Editor changes and adopt Supabase CLI migration tracking. Do not blindly replay migrations over an existing schema. Once reconciled, use `supabase migration list` and `supabase db push` for pending migrations. The `202609140003_parent_role.sql` enum change must commit before the next migration uses it. Do not run `seed.sql` against a real customer project; it creates demo data.
+Follow [DATABASE_CHANGE_WORKFLOW.md](../DATABASE_CHANGE_WORKFLOW.md) to reconcile SQL Editor changes and adopt Supabase CLI migration tracking. Do not blindly replay migrations over an existing schema. Once reconciled, use `supabase migration list` and `supabase db push` for pending migrations. The `202609140003_parent_role.sql` enum change must commit before the next migration uses it. Do not run `seed.sql` against a real customer project; it creates demo data.
 
 Use the dedicated test Supabase project for real-data trials. For its project-wide purge, explicitly mark the project as test in `project_maintenance_settings` and mark **every** team `is_test_team = true` through a trusted SQL Editor/service-role operation. The purge refuses to run otherwise.
 

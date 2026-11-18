@@ -1,4 +1,4 @@
-// Real local-Supabase + browser test. See docs/FAMILY_REGISTRATION_DEPLOYMENT.md.
+// Real local-Supabase + browser test. See docs/reference/FAMILY_REGISTRATION_DEPLOYMENT.md.
 import assert from "node:assert/strict";
 import { chromium } from "@playwright/test";
 import { createClient } from "@supabase/supabase-js";

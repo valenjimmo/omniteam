@@ -3,9 +3,9 @@
 The canonical module and feature hierarchy is in `OMNITEAM_STRUCTURE.md`. This file records what the code currently supports and where refactoring is needed. It does not redefine the product tree.
 
 Multi-tenant isolation is a platform-wide requirement. `TENANT_ISOLATION.md` defines the rules every current and future module must follow.
-The role, parent-registration, and two-owner model is recorded in `ACCESS_MODEL.md`.
-The proposed OmniSite implementation and build prompt are in `OMNISITE_DESIGN.md` and `OMNISITE_CODEX_PROMPT.md`.
-The simulated purchase flow is in `SUBSCRIPTION_WORKFLOW.md`; the guarded test reset API is in `ADMIN_API.md`.
+The role, parent-registration, and two-owner model is recorded in `reference/ACCESS_MODEL.md`.
+The proposed OmniSite implementation and build prompt are in `reference/OMNISITE_DESIGN.md` and `prompts/OMNISITE_CODEX_PROMPT.md`.
+The simulated purchase flow is in `reference/SUBSCRIPTION_WORKFLOW.md`; the guarded test reset API is in `reference/ADMIN_API.md`.
 
 ## Current implementation against the product tree
 
@@ -13,7 +13,7 @@ The simulated purchase flow is in `SUBSCRIPTION_WORKFLOW.md`; the guarded test r
 | --- | --- |
 | OmniAthlete | Attendance demo UI; swimmers, groups, and families have schema, with parent registration, approval, family view, and contact pages. Its integrated OmniSchedule area has practice schedules, sessions, and exceptions in schema; pool schedules, calendar, and events remain unbuilt. Its integrated OmniVolunteer and OmniConnect areas remain unbuilt. |
 | OmniMeet | Public `/omnimeet` overview linked from the homepage explains two planned features: online meet registration and standalone downloadable software that receives registration information. Registration, payments, downloads, and the data integration remain to be built. The overview introduces no operational access paths or new entitlements. |
-| OmniSite | Local milestone: structured editor, private media delivery, revision-checked draft/publish/rollback, explicit template catalog authority, SEO, and managed/custom-host routing. Domain ownership and manual provider activation are separate. See `OMNISITE_OPERATIONS.md`; local role tests pass with a pg_jsonschema shim, while full Supabase/provider staging remains required. News, Events and contact forms are deferred. |
+| OmniSite | Local milestone: structured editor, private media delivery, revision-checked draft/publish/rollback, explicit template catalog authority, SEO, and managed/custom-host routing. Domain ownership and manual provider activation are separate. See `reference/OMNISITE_OPERATIONS.md`; local role tests pass with a pg_jsonschema shim, while full Supabase/provider staging remains required. News, Events and contact forms are deferred. |
 | OmniInsights | No implementation or landing card. |
 
 Payments, fees, invoices, refunds, and financial reporting inputs are shared OmniTeam platform capabilities. They are surfaced inside the workflow that owns the transaction and are not a module entitlement or standalone product.

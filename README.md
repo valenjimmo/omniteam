@@ -2,7 +2,7 @@
 
 OmniAthlete is the first module being built in OmniTeam. Its Attendance screen is currently a mobile-friendly prototype for swim coaches; the screen still uses local demo data. The canonical product hierarchy is in `docs/OMNITEAM_STRUCTURE.md`, and the current architecture assessment is in `docs/PRODUCT_STRUCTURE.md`.
 
-The code inventory and add/remove candidates are in `docs/CURRENT_STRUCTURE.md`. Supabase/Vercel setup, test-data purge, and team archival are in `docs/SUPABASE_VERCEL_SETUP.md`.
+The code inventory and add/remove candidates are in `docs/reference/CURRENT_STRUCTURE.md`. Supabase/Vercel setup, test-data purge, and team archival are in `docs/reference/SUPABASE_VERCEL_SETUP.md`.
 
 ## Stack
 
@@ -13,7 +13,7 @@ Next.js App Router, TypeScript, React, Supabase PostgreSQL/Auth/RLS, Vitest, and
 1. Install Node.js 20+ and npm.
 2. Run `npm install`.
 3. Copy `.env.example` to `.env.local` and fill in Supabase values.
-4. Apply migrations in filename order to the intended Supabase project, following `docs/SUPABASE_VERCEL_SETUP.md`. Use `seed.sql` only for a disposable demo project.
+4. Apply migrations in filename order to the intended Supabase project, following `docs/reference/SUPABASE_VERCEL_SETUP.md`. Use `seed.sql` only for a disposable demo project.
 5. Start the app with `npm run dev`.
 
 Useful checks are `npm run typecheck`, `npm test`, and `npm run build`.
@@ -30,7 +30,7 @@ Cancelled practice sessions are excluded from eligible practice counts. `calcula
 
 ## Supabase and initial owner
 
-Create the first Auth user in Supabase, insert a profile if needed, then add an `OWNER` row in `team_memberships` through a trusted process. Provision the OmniTeam platform owner separately in `platform_owners`. Never expose `SUPABASE_SERVICE_ROLE_KEY` to the browser. The owner and parent access design is in `docs/ACCESS_MODEL.md`; the multi-tenant requirements are in `docs/TENANT_ISOLATION.md`.
+Create the first Auth user in Supabase, insert a profile if needed, then add an `OWNER` row in `team_memberships` through a trusted process. Provision the OmniTeam platform owner separately in `platform_owners`. Never expose `SUPABASE_SERVICE_ROLE_KEY` to the browser. The owner and parent access design is in `docs/reference/ACCESS_MODEL.md`; the multi-tenant requirements are in `docs/TENANT_ISOLATION.md`.
 
 ## Reporting and OmniTeam integration strategy
 

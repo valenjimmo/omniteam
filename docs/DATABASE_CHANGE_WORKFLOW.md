@@ -124,7 +124,7 @@ It does not make an uncertain or partially deployed database safe automatically.
 
 The configurable family-registration migration has an additional focused
 preflight, verification script, and environment-by-environment checklist in
-[`FAMILY_REGISTRATION_DEPLOYMENT.md`](FAMILY_REGISTRATION_DEPLOYMENT.md). Use:
+[`FAMILY_REGISTRATION_DEPLOYMENT.md`](reference/FAMILY_REGISTRATION_DEPLOYMENT.md). Use:
 
 ```bash
 npm run supabase:deploy:registration
