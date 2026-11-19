@@ -31,7 +31,7 @@ Every prompt below inherits this contract:
 | ID | Scope | Depends on | Status | Date | Commit/PR | Notes |
 | --- | --- | --- | --- | --- | --- | --- |
 | DEV-01 | Club model, constraints, plan mapping, generated types | — | DONE | 2026-11-18 | `46340d2` | Canonical team-owned club profile, trusted OWNER write boundary, plan mapping, generated shared types, and rollback-only database coverage; real local Supabase unavailable. |
-| DEV-02 | Six-step club onboarding, validation, review, creation | DEV-01 | DONE | 2026-11-19 | local commit | Six-stage onboarding, public-plan checkout, atomic retry-safe provisioning, editable review, and authorized setup shell; Docker-backed Supabase unavailable. |
+| DEV-02 | Six-step club onboarding, validation, review, creation | DEV-01 | DONE | 2026-11-19 | `c0cdea2` | Six-stage onboarding, public-plan checkout, atomic retry-safe provisioning, editable review, and authorized setup shell; Docker-backed Supabase unavailable. |
 | DEV-03 | Dashboard setup checklist and progress | DEV-01, DEV-02 | NOT RUN | — | — | — |
 | DEV-04 | Family/member baseline additions | DEV-01 | NOT RUN | — | — | — |
 | DEV-05 | Cross-feature regression, security, and audit closeout | DEV-02–04 | NOT RUN | — | — | — |
