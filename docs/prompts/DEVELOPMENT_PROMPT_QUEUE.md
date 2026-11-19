@@ -30,7 +30,7 @@ Every prompt below inherits this contract:
 
 | ID | Scope | Depends on | Status | Date | Commit/PR | Notes |
 | --- | --- | --- | --- | --- | --- | --- |
-| DEV-01 | Club model, constraints, plan mapping, generated types | — | NOT RUN | — | — | — |
+| DEV-01 | Club model, constraints, plan mapping, generated types | — | DONE | 2026-11-18 | local commit | Canonical team-owned club profile, trusted OWNER write boundary, plan mapping, generated shared types, and rollback-only database coverage; real local Supabase unavailable. |
 | DEV-02 | Six-step club onboarding, validation, review, creation | DEV-01 | NOT RUN | — | — | — |
 | DEV-03 | Dashboard setup checklist and progress | DEV-01, DEV-02 | NOT RUN | — | — | — |
 | DEV-04 | Family/member baseline additions | DEV-01 | NOT RUN | — | — | — |

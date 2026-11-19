@@ -30,7 +30,21 @@ with expected(version, name) as (
     ('202609220002', 'omnisite_operations'),
     ('202609220003', 'omnisite_domains_media'),
     ('202609220004', 'omnisite_public_projection'),
-    ('202609220005', 'omnisite_content_v3')
+    ('202609220005', 'omnisite_content_v3'),
+    ('202609230001', 'team_checkout_cleanup'),
+    ('202609230002', 'complete_team_cleanup'),
+    ('202609230003', 'production_security'),
+    ('202609230004', 'omniathlete_phase0_shell'),
+    ('202609230005', 'omniathlete_public_events'),
+    ('202609230006', 'omniathlete_phase2_schedule'),
+    ('202609230007', 'omniathlete_phase3_meet_commitments'),
+    ('202609230008', 'omniathlete_phase4_volunteer'),
+    ('202609230009', 'omniathlete_phase5_connect'),
+    ('202610190001', 'platform_team_hard_delete'),
+    ('202610190002', 'platform_team_usable_links'),
+    ('202610190003', 'family_registration_journey'),
+    ('202610190004', 'checkout_profile_repair'),
+    ('202611180001', 'club_profile_foundation')
 ), recorded as (
   select version from supabase_migrations.schema_migrations
 )

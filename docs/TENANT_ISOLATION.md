@@ -26,3 +26,10 @@ Team owners can manage their own purchased modules and assign team admins. A del
 The initial schema uses `team_id` and membership-based RLS. The OmniAthlete foundation migration adds entitlement checks and composite keys for family, group-membership, and attendance relationships. `202609140002_tenant_integrity.sql` adds composite keys for practice schedules, sessions, exceptions, and check-in tokens, and blocks ordinary `team_id` updates.
 
 These migrations have not yet been exercised against a running PostgreSQL/Supabase instance in this workspace. Before using real team data, run the full migrations and two-team isolation tests. Service-role job boundaries, object storage, and public site publishing still require implementation and review.
+
+The club-profile foundation stores canonical profile data directly on `teams`,
+so it inherits the team tenant boundary and existing membership-scoped read
+policy. Profile writes use a trusted RPC that derives authority from
+`auth.uid()` and an active `OWNER` membership; callers cannot nominate an owner
+or update another team's profile. The migration's rollback-only database suite
+covers two-team visibility and mutation denial.

@@ -4,6 +4,13 @@ Use `supabase/migrations/` for schema changes. Git records the intended changes;
 
 Use `supabase/scripts/` for manual, operational actions such as previews, archive, deletion, and test-data purge. These are **not** migrations, are never run by `supabase db push`, and have no automatic deployed/pending status. Run one only when its documented operation is intended. Keep an external operations log for destructive actions (project, operator, time, script, outcome); do not store customer identifiers or secrets in Git.
 
+Migration `202611180001_club_profile_foundation.sql` establishes `teams` as the
+canonical club-profile owner. Its existing-row backfill uses deterministic
+unique slugs and explicit `Not provided`/`0000000000` compatibility values so
+the constraints can become non-null in one tracked migration. Legacy
+provisioning receives those compatibility values through the insert trigger;
+the expanded onboarding flow must replace them with owner-supplied values.
+
 ## One-time transition for the existing test project
 
 Some schema was applied with the Supabase SQL Editor before migration tracking was established. **Do not run `supabase db push` yet:** it could try to replay those migrations over existing tables. In the Supabase SQL Editor, first inspect history:

@@ -37,6 +37,34 @@ The README calls attendance `OmniAttendance`, but the canonical structure places
 3. Cross-module features use explicit interfaces or events. Each module has a usable standalone path when another module is absent.
 4. Server operations enforce entitlements and roles. The database enforces tenant integrity. Navigation reflects access but is not the security boundary.
 
+## Club profile ownership decision
+
+The current provisioning paths create exactly one `organizations` row and one
+`teams` row together, but all tenant authorization, subscriptions,
+entitlements, lifecycle operations, and module-owned relationships attach to
+the team. Therefore `teams` is the canonical owner of the club profile and
+`teams.name` is the canonical club name. `organizations` remains the current
+provisioning/account container; its duplicated name and optional slug are
+legacy container metadata and must not be used as club-profile authority.
+
+The canonical profile on `teams` contains its globally unique slug, optional
+club code, city, state, IANA timezone, team-scoped owner contact snapshot,
+optional free-text primary facility, and optional season type. The facility
+field is intentionally temporary text until a team-owned facility model is
+required. `owner_phone` is not global person identity: it is the contact value
+the club owner supplied for this team. It accepts 10–15 digits, an optional
+leading `+`, and spaces, parentheses, or hyphens for display; storage preserves
+the trimmed display form.
+
+Club ownership remains authoritative only through an active `OWNER`
+`team_memberships` row. There is no `teams.owner_id`. Multiple active owners
+remain permitted because the existing access model does not define a
+single-owner invariant. Public package keys are the API contract and map inside
+trusted database code as `website` → `omnisite_starter`, `management` →
+`team_manager`, and `complete` → `website_manager`; `team_subscriptions` remains
+the normalized subscription source of truth and mappings reject inactive
+catalog plans.
+
 This can remain one Next.js deployment and one database initially. Independent modules do not require separate services or databases; clear ownership and optional dependencies are the important constraints.
 
 ## Product decisions to clarify before deeper refactoring

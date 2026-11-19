@@ -49,6 +49,12 @@ try {
   console.log(
     "PASS: rollback-only OmniSite roles, tenant isolation, revisions, publication, domains, media, catalog and lifecycle suite.",
   );
+  await db.exec(
+    await readFile("supabase/tests/club_profile_foundation.sql", "utf8"),
+  );
+  console.log(
+    "PASS: rollback-only club profile constraints, plan mapping, owner authorization and two-team isolation suite.",
+  );
 } catch (e) {
   console.error(e.message);
   if (e.where) console.error(e.where);

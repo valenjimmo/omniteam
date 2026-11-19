@@ -25,8 +25,8 @@ Before implementing an item, confirm product names and ownership against
 
 | Step | Audit | Area | Status | Implementation prompt |
 | --- | --- | --- | --- | --- |
-| Prompt 3 | Club registration validation | Client, server, database | AUDITED | DEV-01, DEV-02 |
-| 4 | Club/team data model | Supabase schema, TypeScript types | AUDITED | DEV-01 |
+| Prompt 3 | Club registration validation | Client, server, database | IN PROGRESS | DEV-01, DEV-02 |
+| 4 | Club/team data model | Supabase schema, TypeScript types | VERIFIED | DEV-01 |
 | Prompt 2 | Club subscribe flow | Client flow, Supabase RPCs, post-registration routing | AUDITED | DEV-02 |
 | Prompt 4 | Club registration review | Client review summary and step editing | AUDITED | DEV-02 |
 | Prompt 5 | Club creation boundary | Supabase RPCs, ownership, setup completion, redirect | AUDITED | DEV-02, DEV-03 |
@@ -106,6 +106,14 @@ no implementation was performed.
   optional `club_code`, duplicate slugs, and all three allowed plans.
 - Existing internal subscription plan IDs remain an implementation detail and
   are not accepted as untrusted public plan values unless explicitly intended.
+
+### DEV-01 status (2026-11-18)
+
+Storage and database validation are complete in
+`202611180001_club_profile_foundation.sql`, including the three-key trusted plan
+mapping. Client onboarding and its direct registration RPC parity remain owned
+by DEV-02, so this audit stays `IN PROGRESS` rather than claiming the entire
+prompt is verified.
 
 ## Step 4: Club/team data model
 
@@ -223,6 +231,18 @@ and proposed Supabase work only; no schema or application changes were made.
   relevant application code no longer relies on incompatible handwritten
   database row types.
 - No Prisma dependency or schema is introduced.
+
+### DEV-01 verification (2026-11-18)
+
+`teams` is documented and implemented as the canonical club-profile owner;
+active OWNER membership remains the only club ownership authority. The tracked,
+backfill-safe migration adds constraints, IANA validation, trusted profile
+writes, and active public-plan mapping without denormalizing subscriptions.
+`supabase/tests/club_profile_foundation.sql` covers boundaries and two-team
+isolation. The full migration chain and rollback-only database suites pass in
+the repository's disposable PostgreSQL/WASM runner. Typecheck and 82 focused
+Vitest tests pass. A Docker-backed local Supabase stack was unavailable, so no
+claim is made for that environment.
 
 ## Prompt 2: Club subscribe flow
 

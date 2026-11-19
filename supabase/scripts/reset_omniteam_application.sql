@@ -69,6 +69,8 @@ begin
       'post_announcement', 'post_event_message', 'claim_job_slot', 'release_job_signup',
       'save_site_template', 'set_site_enabled', 'set_team_member_module_permission',
       'set_team_member_role', 'start_platform_support_session'
+      ,'club_slug_base', 'prepare_club_profile', 'require_iana_timezone',
+      'internal_plan_id', 'update_club_profile'
     ])
   loop
     for function_signature in
@@ -164,7 +166,9 @@ where version in (
   '202609150003', '202609220001', '202609220002', '202609220003',
   '202609220004', '202609220005', '202609230001', '202609230002',
   '202609230003', '202609230004', '202609230005', '202609230006',
-  '202609230007', '202609230008', '202609230009', '202610010001'
+  '202609230007', '202609230008', '202609230009', '202610010001',
+  '202610190001', '202610190002', '202610190003', '202610190004',
+  '202611180001'
 );
 
 commit;
