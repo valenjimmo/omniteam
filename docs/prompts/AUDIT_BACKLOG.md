@@ -25,13 +25,13 @@ Before implementing an item, confirm product names and ownership against
 
 | Step | Audit | Area | Status | Implementation prompt |
 | --- | --- | --- | --- | --- |
-| Prompt 3 | Club registration validation | Client, server, database | AUDITED | Source prompt captured |
-| 4 | Club/team data model | Supabase schema, TypeScript types | AUDITED | Not created |
-| Prompt 2 | Club subscribe flow | Client flow, Supabase RPCs, post-registration routing | AUDITED | Source prompt captured |
-| Prompt 4 | Club registration review | Client review summary and step editing | AUDITED | Source prompt captured |
-| Prompt 5 | Club creation boundary | Supabase RPCs, ownership, setup completion, redirect | AUDITED | Source prompt captured |
-| Prompt 6 | Club setup checklist | Dashboard checklist and progress logic | AUDITED | Source prompt captured |
-| Prompt 7 | Family/member join baseline | Family registration form, approval RPC, persisted roster data | AUDITED | Source prompt captured |
+| Prompt 3 | Club registration validation | Client, server, database | AUDITED | DEV-01, DEV-02 |
+| 4 | Club/team data model | Supabase schema, TypeScript types | AUDITED | DEV-01 |
+| Prompt 2 | Club subscribe flow | Client flow, Supabase RPCs, post-registration routing | AUDITED | DEV-02 |
+| Prompt 4 | Club registration review | Client review summary and step editing | AUDITED | DEV-02 |
+| Prompt 5 | Club creation boundary | Supabase RPCs, ownership, setup completion, redirect | AUDITED | DEV-02, DEV-03 |
+| Prompt 6 | Club setup checklist | Dashboard checklist and progress logic | AUDITED | DEV-03 |
+| Prompt 7 | Family/member join baseline | Family registration form, approval RPC, persisted roster data | AUDITED | DEV-04 |
 
 ## Prompt 3: Club registration validation
 

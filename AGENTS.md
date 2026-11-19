@@ -15,3 +15,5 @@ Account closure archives a team and blocks ordinary access by default. Keep reta
 Before implementing a new module or changing the product hierarchy, confirm its name, ownership, dependencies, and integration behavior against `docs/OMNITEAM_STRUCTURE.md`. Update that file when the owner changes the structure; keep implementation notes in `docs/PRODUCT_STRUCTURE.md`.
 
 For database changes, follow `docs/DATABASE_CHANGE_WORKFLOW.md`. Schema changes belong in tracked migrations; `supabase/scripts/` contains manual operations and must never be batch-run as deployment steps.
+
+After a meaningful set of related development check-ins, use `AUDIT-01` in `docs/prompts/DEVELOPMENT_PROMPT_QUEUE.md` for a read-only audit. Store the dated evidence file under `docs/prompts/audits/`, deduplicate durable findings into `docs/prompts/AUDIT_BACKLOG.md`, and use `AUDIT-02` before creating the next implementation batch. Update the prompt queue's run trackers; do not mark work verified when required checks were not run.

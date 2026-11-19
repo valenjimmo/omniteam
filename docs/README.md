@@ -31,6 +31,8 @@ feature or enhancement work:
   acceptance criteria. Move an item from `AUDITED` to `READY` only after its
   open decisions are resolved, then turn it into a focused implementation
   prompt.
+- `DEVELOPMENT_PROMPT_QUEUE.md` contains dependency-ordered Codex prompts,
+  execution tracking, and the standard for recurring post-check-in audits.
 - `OMNISITE_CODEX_PROMPT.md` is an existing reusable implementation prompt.
 
 Implementation prompts do not override canonical governance, tenant isolation,
