@@ -1,5 +1,4 @@
-/* eslint-disable */
-// Generated from the tracked Supabase schema after 202611180001.
+// Generated from the tracked Supabase schema after 202611190001.
 // Regenerate with `supabase gen types typescript --local` when local Supabase is available.
 export type Json = string | number | boolean | null | { [key: string]: Json | undefined } | Json[];
 
@@ -31,9 +30,9 @@ export type Database = {
         Relationships: [{ foreignKeyName: "team_memberships_team_id_fkey"; columns: ["team_id"]; isOneToOne: false; referencedRelation: "teams"; referencedColumns: ["id"] }, { foreignKeyName: "team_memberships_user_id_fkey"; columns: ["user_id"]; isOneToOne: false; referencedRelation: "profiles"; referencedColumns: ["id"] }];
       };
       subscription_plans: {
-        Row: { id: string; name: string; description: string; monthly_price_cents: number; module_keys: string[]; active: boolean; display_order: number; created_at: string };
-        Insert: { id: string; name: string; description: string; monthly_price_cents: number; module_keys: string[]; active?: boolean; display_order?: number; created_at?: string };
-        Update: { id?: string; name?: string; description?: string; monthly_price_cents?: number; module_keys?: string[]; active?: boolean; display_order?: number; created_at?: string };
+        Row: { id: string; public_key: string | null; name: string; description: string; monthly_price_cents: number; module_keys: string[]; active: boolean; display_order: number; created_at: string };
+        Insert: { id: string; public_key?: string | null; name: string; description: string; monthly_price_cents: number; module_keys: string[]; active?: boolean; display_order?: number; created_at?: string };
+        Update: { id?: string; public_key?: string | null; name?: string; description?: string; monthly_price_cents?: number; module_keys?: string[]; active?: boolean; display_order?: number; created_at?: string };
         Relationships: [];
       };
       team_subscriptions: {
@@ -43,18 +42,19 @@ export type Database = {
         Relationships: [{ foreignKeyName: "team_subscriptions_team_id_fkey"; columns: ["team_id"]; isOneToOne: false; referencedRelation: "teams"; referencedColumns: ["id"] }, { foreignKeyName: "team_subscriptions_plan_id_fkey"; columns: ["plan_id"]; isOneToOne: false; referencedRelation: "subscription_plans"; referencedColumns: ["id"] }];
       };
       mock_checkout_sessions: {
-        Row: { id: string; user_id: string; plan_id: string; team_name: string; timezone: string; status: string; team_id: string | null; created_at: string; completed_at: string | null; expires_at: string };
-        Insert: { id?: string; user_id: string; plan_id: string; team_name: string; timezone: string; status?: string; team_id?: string | null; created_at?: string; completed_at?: string | null; expires_at?: string };
-        Update: { id?: string; user_id?: string; plan_id?: string; team_name?: string; timezone?: string; status?: string; team_id?: string | null; created_at?: string; completed_at?: string | null; expires_at?: string };
+        Row: { id: string; user_id: string; plan_id: string; public_plan_key: string | null; team_name: string; club_slug: string | null; club_code: string | null; city: string | null; state: string | null; timezone: string; owner_phone: string | null; primary_facility: string | null; status: string; team_id: string | null; created_at: string; completed_at: string | null; expires_at: string };
+        Insert: { id?: string; user_id: string; plan_id: string; public_plan_key?: string | null; team_name: string; club_slug?: string | null; club_code?: string | null; city?: string | null; state?: string | null; timezone: string; owner_phone?: string | null; primary_facility?: string | null; status?: string; team_id?: string | null; created_at?: string; completed_at?: string | null; expires_at?: string };
+        Update: { id?: string; user_id?: string; plan_id?: string; public_plan_key?: string | null; team_name?: string; club_slug?: string | null; club_code?: string | null; city?: string | null; state?: string | null; timezone?: string; owner_phone?: string | null; primary_facility?: string | null; status?: string; team_id?: string | null; created_at?: string; completed_at?: string | null; expires_at?: string };
         Relationships: [];
       };
     };
     Views: { [_ in never]: never };
     Functions: {
-      begin_mock_checkout: { Args: { selected_plan_id: string; requested_team_name: string; requested_timezone: string }; Returns: string };
+      begin_mock_checkout: { Args: { requested_public_plan: string; requested_team_name: string; requested_slug: string; requested_club_code: string | null; requested_city: string; requested_state: string; requested_timezone: string; requested_owner_phone: string; requested_primary_facility: string | null }; Returns: string };
       complete_mock_checkout: { Args: { target_checkout_id: string }; Returns: string };
       internal_plan_id: { Args: { public_plan: string }; Returns: string };
       update_club_profile: { Args: { target_team_id: string; requested_name: string; requested_slug: string; requested_club_code: string | null; requested_city: string; requested_state: string; requested_timezone: string; requested_owner_phone: string; requested_primary_facility: string | null; requested_season_type: string | null }; Returns: Database["public"]["Tables"]["teams"]["Row"] };
+      update_own_profile_names: { Args: { requested_first_name: string; requested_last_name: string }; Returns: undefined };
     };
     Enums: {
       record_status: "ACTIVE" | "INACTIVE";

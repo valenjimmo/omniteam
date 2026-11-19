@@ -11,6 +11,12 @@ the constraints can become non-null in one tracked migration. Legacy
 provisioning receives those compatibility values through the insert trigger;
 the expanded onboarding flow must replace them with owner-supplied values.
 
+Migration `202611190001_club_onboarding.sql` replaces the legacy checkout RPC
+signature. Existing pending sessions are cancelled because they do not contain
+the required club profile; completed history is preserved. New sessions store a
+public package key plus the resolved internal plan, and completion rechecks both
+under a row lock before provisioning atomically.
+
 ## One-time transition for the existing test project
 
 Some schema was applied with the Supabase SQL Editor before migration tracking was established. **Do not run `supabase db push` yet:** it could try to replay those migrations over existing tables. In the Supabase SQL Editor, first inspect history:

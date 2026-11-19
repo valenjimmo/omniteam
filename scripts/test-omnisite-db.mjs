@@ -55,6 +55,12 @@ try {
   console.log(
     "PASS: rollback-only club profile constraints, plan mapping, owner authorization and two-team isolation suite.",
   );
+  await db.exec(
+    await readFile("supabase/tests/club_onboarding.sql", "utf8"),
+  );
+  console.log(
+    "PASS: rollback-only club onboarding validation, ownership, atomicity, retry and duplicate-slug suite.",
+  );
 } catch (e) {
   console.error(e.message);
   if (e.where) console.error(e.where);

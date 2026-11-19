@@ -44,7 +44,8 @@ with expected(version, name) as (
     ('202610190002', 'platform_team_usable_links'),
     ('202610190003', 'family_registration_journey'),
     ('202610190004', 'checkout_profile_repair'),
-    ('202611180001', 'club_profile_foundation')
+    ('202611180001', 'club_profile_foundation'),
+    ('202611190001', 'club_onboarding')
 ), recorded as (
   select version from supabase_migrations.schema_migrations
 )

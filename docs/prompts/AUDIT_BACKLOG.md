@@ -25,11 +25,11 @@ Before implementing an item, confirm product names and ownership against
 
 | Step | Audit | Area | Status | Implementation prompt |
 | --- | --- | --- | --- | --- |
-| Prompt 3 | Club registration validation | Client, server, database | IN PROGRESS | DEV-01, DEV-02 |
+| Prompt 3 | Club registration validation | Client, server, database | VERIFIED | DEV-01, DEV-02 |
 | 4 | Club/team data model | Supabase schema, TypeScript types | VERIFIED | DEV-01 |
-| Prompt 2 | Club subscribe flow | Client flow, Supabase RPCs, post-registration routing | AUDITED | DEV-02 |
-| Prompt 4 | Club registration review | Client review summary and step editing | AUDITED | DEV-02 |
-| Prompt 5 | Club creation boundary | Supabase RPCs, ownership, setup completion, redirect | AUDITED | DEV-02, DEV-03 |
+| Prompt 2 | Club subscribe flow | Client flow, Supabase RPCs, post-registration routing | VERIFIED | DEV-02 |
+| Prompt 4 | Club registration review | Client review summary and step editing | VERIFIED | DEV-02 |
+| Prompt 5 | Club creation boundary | Supabase RPCs, ownership, setup completion, redirect | IN PROGRESS | DEV-02, DEV-03 |
 | Prompt 6 | Club setup checklist | Dashboard checklist and progress logic | AUDITED | DEV-03 |
 | Prompt 7 | Family/member join baseline | Family registration form, approval RPC, persisted roster data | AUDITED | DEV-04 |
 
@@ -114,6 +114,14 @@ Storage and database validation are complete in
 mapping. Client onboarding and its direct registration RPC parity remain owned
 by DEV-02, so this audit stays `IN PROGRESS` rather than claiming the entire
 prompt is verified.
+
+### DEV-02 verification (2026-11-19)
+
+Shared client validation and the trusted checkout RPC now enforce the same
+identity, location, timezone, phone, optional-field, and public-plan rules. The
+rollback-only database suite covers direct malformed calls, inactive/internal
+plans, expiration, ownership, and duplicate-slug completion. Prompt 3 is
+verified across DEV-01 and DEV-02.
 
 ## Step 4: Club/team data model
 
@@ -346,6 +354,14 @@ Desired flow:
 - Existing plan selection, subscription provisioning, entitlement grants, and
   audit logging are retained rather than reimplemented.
 
+### DEV-02 verification (2026-11-19)
+
+`/subscribe` now implements account → identity → location → plan → review →
+complete while preserving authentication, active plan cards, displayed pricing,
+and the Supabase RPC boundary. Non-secret draft state survives email-confirmation
+return, edit navigation preserves fields, and successful creation uses the RPC's
+team ID to open the independently authorized setup route.
+
 ## Prompt 4: Club registration review
 
 ### Objective
@@ -424,6 +440,13 @@ their data model and validation decisions are resolved.
   remain intact.
 - The layout remains readable at narrow viewport sizes and uses semantic labels
   or description-list markup where practical.
+
+### DEV-02 verification (2026-11-19)
+
+The existing review is split into Owner, Club, Location and contact, and Plan
+sections with edit actions and semantic description lists. Optional club code
+and facility rows are omitted when empty; prices and the mock-payment notice are
+preserved, and neither passwords nor internal identifiers are rendered.
 
 ## Prompt 5: Club creation boundary
 
@@ -544,6 +567,17 @@ server or client behavior was changed.
   completion, setup status, and audit logging succeed or roll back together.
 - Existing Supabase client and RPC architecture remains in place; Prisma is not
   introduced.
+
+### DEV-02 status (2026-11-19)
+
+The checkout boundary now accepts only public plan keys, stores the pending club
+profile, revalidates the active internal mapping at completion, derives the
+owner from `auth.uid()`, creates one active OWNER membership, and atomically
+provisions entitlements, normalized subscription, and audit event. Completion
+is retry-safe and the unique team slug is the final race-safe arbiter. The
+team-scoped setup route authorizes active membership independently. Derived
+`setup_complete` conditions and the full checklist remain owned by DEV-03, so
+Prompt 5 stays `IN PROGRESS`.
 
 ## Prompt 6: Club setup checklist
 

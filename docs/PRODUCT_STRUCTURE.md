@@ -65,6 +65,11 @@ trusted database code as `website` → `omnisite_starter`, `management` →
 the normalized subscription source of truth and mappings reject inactive
 catalog plans.
 
+Club setup completion is derived from persisted required profile/checklist data;
+it is not a mutable onboarding flag. DEV-02 creates the authorized team-scoped
+setup destination, while DEV-03 owns the complete checklist and its required
+versus recommended progress rules.
+
 This can remain one Next.js deployment and one database initially. Independent modules do not require separate services or databases; clear ownership and optional dependencies are the important constraints.
 
 ## Product decisions to clarify before deeper refactoring
