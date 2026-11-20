@@ -61,6 +61,18 @@ try {
   console.log(
     "PASS: rollback-only club onboarding validation, ownership, atomicity, retry and duplicate-slug suite.",
   );
+  await db.exec(
+    await readFile("supabase/tests/club_setup_checklist.sql", "utf8"),
+  );
+  console.log(
+    "PASS: rollback-only setup projection, multi-team switching, entitlement and cross-team denial suite.",
+  );
+  await db.exec(
+    await readFile("supabase/tests/family_registration_baseline.sql", "utf8"),
+  );
+  console.log(
+    "PASS: rollback-only family registration validation, approval, privacy and two-team isolation suite.",
+  );
 } catch (e) {
   console.error(e.message);
   if (e.where) console.error(e.where);

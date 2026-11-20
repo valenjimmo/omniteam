@@ -43,14 +43,14 @@ set local role authenticated;
 select pg_temp.expect((select count(*)=1 and bool_and(id='53000000-0000-4000-8000-000000000001') from public.teams),'owner sees only own team profile');
 update public.teams set city='Direct bypass' where id='53000000-0000-4000-8000-000000000001';
 select pg_temp.expect((select city='Seattle' from public.teams where id='53000000-0000-4000-8000-000000000001'),'direct table update is blocked by RLS');
-select public.update_club_profile('53000000-0000-4000-8000-000000000001','Club A Updated','club-a-updated','A99','Tacoma','WA','America/Los_Angeles','+1 253 555 0100','Central Pool','summer');
+select public.update_club_profile('53000000-0000-4000-8000-000000000001','Club A Updated','club-a-updated','A99','Tacoma','WA','America/Los_Angeles','+1 253 555 0100','Central Pool','summer','https://example.test/logo.png');
 select pg_temp.expect((select city='Tacoma' and primary_facility='Central Pool' from public.teams where id='53000000-0000-4000-8000-000000000001'),'owner updates own canonical profile through trusted RPC');
-select pg_temp.denied($q$select public.update_club_profile('53000000-0000-4000-8000-000000000002','Stolen','stolen-club',null,'X','Y','UTC','2065550100',null,null)$q$);
+select pg_temp.denied($q$select public.update_club_profile('53000000-0000-4000-8000-000000000002','Stolen','stolen-club',null,'X','Y','UTC','2065550100',null,null,null)$q$);
 reset role;
 
 select set_config('request.jwt.claim.sub','51000000-0000-4000-8000-000000000003',true);
 set local role authenticated;
-select pg_temp.denied($q$select public.update_club_profile('53000000-0000-4000-8000-000000000001','Coach edit','coach-edit',null,'X','Y','UTC','2065550100',null,null)$q$);
+select pg_temp.denied($q$select public.update_club_profile('53000000-0000-4000-8000-000000000001','Coach edit','coach-edit',null,'X','Y','UTC','2065550100',null,null,null)$q$);
 reset role;
 
 select pg_temp.expect(not exists(select 1 from information_schema.columns where table_schema='public' and table_name='teams' and column_name='owner_id'),'owner authority is not duplicated');

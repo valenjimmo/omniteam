@@ -70,6 +70,36 @@ it is not a mutable onboarding flag. DEV-02 creates the authorized team-scoped
 setup destination, while DEV-03 owns the complete checklist and its required
 versus recommended progress rules.
 
+The club logo used by setup is platform-level team profile data and does not
+depend on OmniSite. A first practice group means at least one active row in the
+existing team-owned `swim_groups` model; it is offered only when OmniAthlete is
+currently entitled. Recommended tasks unavailable under the active entitlement
+remain visible but do not count in overall setup progress.
+
+## Family registration baseline decisions
+
+The existing `legalSex` registration value is the baseline sex/gender field for
+roster and eligibility records. It is required and constrained to Female, Male,
+Intersex, or Not specified. The existing self-described gender identity and
+pronoun intake remains optional private profile data; no third overlapping
+field or typed `swimmers` column is added because no operational query or
+reporting requirement has been established.
+
+The existing household address, city, state/province, and postal code remain in
+the submitted registration payload and approved family registration profile.
+The submitted request is the immutable intake snapshot. These values are not
+promoted to `families` columns until a normal edit, query, export, or integration
+workflow requires typed storage. The payload's legacy `billingEmail` key is the
+single canonical family primary email and maps to `families.primary_email`; the
+UI makes its billing use explicit without collecting a duplicate address.
+
+An optional requested roster group is separate from configurable registration
+programs. Public registration exposes only active groups for that team.
+Submission validates the request against the team, and approval revalidates the
+group before creating the existing composite-tenant-safe `group_memberships`
+relationship. If the group becomes inactive or disappears while pending, the
+family can still be approved but no group assignment is created.
+
 This can remain one Next.js deployment and one database initially. Independent modules do not require separate services or databases; clear ownership and optional dependencies are the important constraints.
 
 ## Product decisions to clarify before deeper refactoring

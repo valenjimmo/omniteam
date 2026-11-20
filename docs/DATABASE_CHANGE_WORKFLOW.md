@@ -17,6 +17,19 @@ the required club profile; completed history is preserved. New sessions store a
 public package key plus the resolved internal plan, and completion rechecks both
 under a row lock before provisioning atomically.
 
+Migration `202611190002_club_setup_checklist.sql` adds the platform-level club
+logo URL and a trusted, membership-authorized checklist projection. Setup
+completion remains derived from the four required rows; active practice-group
+state uses the existing `swim_groups` model and is available only with an active
+OmniAthlete entitlement.
+
+Migration `202611190003_family_registration_baseline.sql` keeps registration
+snapshots in JSON while requiring the existing legal-sex value, applying shared
+email/phone rules in the submission RPC, and exposing active same-team roster
+groups through the public registration projection. Requested groups are checked
+again during authorized approval before the existing composite tenant group
+membership is created; stale requests do not create an assignment.
+
 ## One-time transition for the existing test project
 
 Some schema was applied with the Supabase SQL Editor before migration tracking was established. **Do not run `supabase db push` yet:** it could try to replay those migrations over existing tables. In the Supabase SQL Editor, first inspect history:

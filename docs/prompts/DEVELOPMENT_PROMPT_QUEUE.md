@@ -32,8 +32,8 @@ Every prompt below inherits this contract:
 | --- | --- | --- | --- | --- | --- | --- |
 | DEV-01 | Club model, constraints, plan mapping, generated types | — | DONE | 2026-11-18 | `46340d2` | Canonical team-owned club profile, trusted OWNER write boundary, plan mapping, generated shared types, and rollback-only database coverage; real local Supabase unavailable. |
 | DEV-02 | Six-step club onboarding, validation, review, creation | DEV-01 | DONE | 2026-11-19 | `c0cdea2` | Six-stage onboarding, public-plan checkout, atomic retry-safe provisioning, editable review, and authorized setup shell; Docker-backed Supabase unavailable. |
-| DEV-03 | Dashboard setup checklist and progress | DEV-01, DEV-02 | NOT RUN | — | — | — |
-| DEV-04 | Family/member baseline additions | DEV-01 | NOT RUN | — | — | — |
+| DEV-03 | Dashboard setup checklist and progress | DEV-01, DEV-02 | VERIFIED | 2026-11-19 | — | Compact dashboard card, focused setup editor, derived required completion, entitlement-aware progress, and two-team denial coverage; typecheck, 90 unit tests, and disposable PostgreSQL suite pass. |
+| DEV-04 | Family/member baseline additions | DEV-01 | DONE | 2026-11-19 | — | Existing flow extended with legal-sex/contact validation and approval-time roster requests; typecheck, 91 unit tests, and disposable PostgreSQL suite pass; real browser/Supabase suite unavailable. |
 | DEV-05 | Cross-feature regression, security, and audit closeout | DEV-02–04 | NOT RUN | — | — | — |
 
 When starting a run, set its status and date. When finishing, record the commit

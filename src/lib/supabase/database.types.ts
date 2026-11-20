@@ -12,9 +12,9 @@ export type Database = {
         Relationships: [];
       };
       teams: {
-        Row: { id: string; organization_id: string; name: string; slug: string; club_code: string | null; city: string; state: string; timezone: string; owner_phone: string; primary_facility: string | null; season_type: string | null; status: Database["public"]["Enums"]["record_status"]; is_test_team: boolean; archived_at: string | null; created_at: string; updated_at: string };
-        Insert: { id?: string; organization_id: string; name: string; slug?: string; club_code?: string | null; city?: string; state?: string; timezone?: string; owner_phone?: string; primary_facility?: string | null; season_type?: string | null; status?: Database["public"]["Enums"]["record_status"]; is_test_team?: boolean; archived_at?: string | null; created_at?: string; updated_at?: string };
-        Update: { id?: string; organization_id?: string; name?: string; slug?: string; club_code?: string | null; city?: string; state?: string; timezone?: string; owner_phone?: string; primary_facility?: string | null; season_type?: string | null; status?: Database["public"]["Enums"]["record_status"]; is_test_team?: boolean; archived_at?: string | null; created_at?: string; updated_at?: string };
+        Row: { id: string; organization_id: string; name: string; slug: string; club_code: string | null; city: string; state: string; timezone: string; owner_phone: string; primary_facility: string | null; season_type: string | null; logo_url: string | null; status: Database["public"]["Enums"]["record_status"]; is_test_team: boolean; archived_at: string | null; created_at: string; updated_at: string };
+        Insert: { id?: string; organization_id: string; name: string; slug?: string; club_code?: string | null; city?: string; state?: string; timezone?: string; owner_phone?: string; primary_facility?: string | null; season_type?: string | null; logo_url?: string | null; status?: Database["public"]["Enums"]["record_status"]; is_test_team?: boolean; archived_at?: string | null; created_at?: string; updated_at?: string };
+        Update: { id?: string; organization_id?: string; name?: string; slug?: string; club_code?: string | null; city?: string; state?: string; timezone?: string; owner_phone?: string; primary_facility?: string | null; season_type?: string | null; logo_url?: string | null; status?: Database["public"]["Enums"]["record_status"]; is_test_team?: boolean; archived_at?: string | null; created_at?: string; updated_at?: string };
         Relationships: [{ foreignKeyName: "teams_organization_id_fkey"; columns: ["organization_id"]; isOneToOne: false; referencedRelation: "organizations"; referencedColumns: ["id"] }];
       };
       profiles: {
@@ -53,7 +53,8 @@ export type Database = {
       begin_mock_checkout: { Args: { requested_public_plan: string; requested_team_name: string; requested_slug: string; requested_club_code: string | null; requested_city: string; requested_state: string; requested_timezone: string; requested_owner_phone: string; requested_primary_facility: string | null }; Returns: string };
       complete_mock_checkout: { Args: { target_checkout_id: string }; Returns: string };
       internal_plan_id: { Args: { public_plan: string }; Returns: string };
-      update_club_profile: { Args: { target_team_id: string; requested_name: string; requested_slug: string; requested_club_code: string | null; requested_city: string; requested_state: string; requested_timezone: string; requested_owner_phone: string; requested_primary_facility: string | null; requested_season_type: string | null }; Returns: Database["public"]["Tables"]["teams"]["Row"] };
+      update_club_profile: { Args: { target_team_id: string; requested_name: string; requested_slug: string; requested_club_code: string | null; requested_city: string; requested_state: string; requested_timezone: string; requested_owner_phone: string; requested_primary_facility: string | null; requested_season_type: string | null; requested_logo_url: string | null }; Returns: Database["public"]["Tables"]["teams"]["Row"] };
+      get_team_setup_checklist: { Args: { target_team_id: string }; Returns: Json };
       update_own_profile_names: { Args: { requested_first_name: string; requested_last_name: string }; Returns: undefined };
     };
     Enums: {

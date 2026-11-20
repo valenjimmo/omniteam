@@ -29,9 +29,9 @@ Before implementing an item, confirm product names and ownership against
 | 4 | Club/team data model | Supabase schema, TypeScript types | VERIFIED | DEV-01 |
 | Prompt 2 | Club subscribe flow | Client flow, Supabase RPCs, post-registration routing | VERIFIED | DEV-02 |
 | Prompt 4 | Club registration review | Client review summary and step editing | VERIFIED | DEV-02 |
-| Prompt 5 | Club creation boundary | Supabase RPCs, ownership, setup completion, redirect | IN PROGRESS | DEV-02, DEV-03 |
-| Prompt 6 | Club setup checklist | Dashboard checklist and progress logic | AUDITED | DEV-03 |
-| Prompt 7 | Family/member join baseline | Family registration form, approval RPC, persisted roster data | AUDITED | DEV-04 |
+| Prompt 5 | Club creation boundary | Supabase RPCs, ownership, setup completion, redirect | VERIFIED | DEV-02, DEV-03 |
+| Prompt 6 | Club setup checklist | Dashboard checklist and progress logic | VERIFIED | DEV-03 |
+| Prompt 7 | Family/member join baseline | Family registration form, approval RPC, persisted roster data | IN PROGRESS | DEV-04 |
 
 ## Prompt 3: Club registration validation
 
@@ -576,8 +576,17 @@ owner from `auth.uid()`, creates one active OWNER membership, and atomically
 provisions entitlements, normalized subscription, and audit event. Completion
 is retry-safe and the unique team slug is the final race-safe arbiter. The
 team-scoped setup route authorizes active membership independently. Derived
-`setup_complete` conditions and the full checklist remain owned by DEV-03, so
-Prompt 5 stays `IN PROGRESS`.
+`setup_complete` conditions and the full checklist were completed by DEV-03.
+
+### DEV-03 verification (2026-11-19)
+
+`setup_complete` is derived, not stored, and depends only on the four required
+rows. The membership-authorized checklist projection reads persisted team data,
+uses active `swim_groups` rows for the first practice group, and makes that task
+unavailable without OmniAthlete. The dashboard and focused setup destination
+share one tested progress helper. Typecheck, all 90 Vitest tests, and the
+disposable PostgreSQL migration/isolation suite pass, including multi-team
+selection and cross-team denial.
 
 ## Prompt 6: Club setup checklist
 
@@ -693,6 +702,18 @@ scope for redesign.
   tasks because of unavailable modules.
 - Tests cover zero, partial, and full completion; combined rows; unavailable
   recommended items; team switching; and cross-team denial.
+
+### DEV-03 verification (2026-11-19)
+
+The existing dashboard retains its hero, subscription summary, module grid, and
+family shortcut, with one compact checklist card added ahead of the modules.
+The full team-scoped destination labels required and recommended rows, links to
+the focused profile/group editors, refreshes after edits and on dashboard focus,
+and excludes unavailable practice-group setup from the denominator. The logo is
+platform-level team profile data and never depends on OmniSite. Progress helper
+tests cover zero/partial/full, combined required rows, and unavailable items;
+the rollback-only database suite covers persisted projections, active-group
+semantics, two-team switching, and cross-team denial.
 
 ## Prompt 7: Family/member join baseline
 
@@ -824,6 +845,26 @@ replaced.
   two-team isolation tests.
 - Existing medical, emergency-contact, agreement, draft, review, and team-
   approval behavior remains intact.
+
+### DEV-04 implementation evidence (2026-11-19)
+
+The existing legal-sex input is now the constrained baseline field; optional
+self-described identity remains private snapshot data and no third or typed
+swimmer field was added. Active same-team roster groups are exposed as optional
+requests, rejected at submission when foreign or malformed, and revalidated on
+approval before a composite-tenant-safe membership is created. A stale request
+does not block family approval and creates no group membership. The legacy
+`billingEmail` payload key is labeled and documented as the canonical family
+primary email. Shared client/RPC email and basic-phone validation is applied,
+while household location remains in the immutable request snapshot because no
+operational typed-storage requirement was found.
+
+Typecheck, all 91 unit tests, migration application, and the rollback-only
+family registration database suite pass. The database suite covers direct-RPC
+validation, foreign/stale groups, approval, rejection, guardian/contact
+persistence, parent privacy, and two-team isolation. Keep this entry `IN
+PROGRESS` until the real local-Supabase browser integration suite is run; its
+required `API_URL`, `ANON_KEY`, and `SERVICE_ROLE_KEY` were unavailable.
 
 ## Template for the next audit
 

@@ -16,6 +16,7 @@ const identities = {
   ownerA: { email: `owner-a-${suffix}@example.test`, first: "Olivia", last: "Owner" },
   ownerB: { email: `owner-b-${suffix}@example.test`, first: "Blake", last: "Owner" },
   guardian: { email: `guardian-${suffix}@example.test`, first: "Grace", last: "Guardian" },
+  stale: { email: `stale-${suffix}@example.test`, first: "Stella", last: "Guardian" },
   rejected: { email: `rejected-${suffix}@example.test`, first: "Riley", last: "Guardian" },
 };
 
@@ -49,6 +50,8 @@ try {
     { team_id: teamA.id, module_key: "omniathlete" },
     { team_id: teamB.id, module_key: "omniathlete" },
   ]).throwOnError();
+  const groupA = await insertOne("swim_groups", { team_id: teamA.id, name: `Bronze ${suffix}` });
+  const groupB = await insertOne("swim_groups", { team_id: teamB.id, name: `Foreign ${suffix}` });
 
   browser = await chromium.launch();
   const ownerContext = await browser.newContext();
@@ -76,7 +79,7 @@ try {
   await guardianPage.getByLabel("City").fill("Harbor City");
   await guardianPage.getByLabel("State / province").fill("CA");
   await guardianPage.getByLabel("Postal code").fill("90001");
-  await guardianPage.getByLabel("Billing email").fill(identities.guardian.email);
+  await guardianPage.getByLabel("Primary email").fill(identities.guardian.email);
   await guardianPage.getByRole("button", { name: "Save and continue" }).click();
 
   const contacts = guardianPage.getByRole("heading", { name: "Guardians and emergency contacts" });
@@ -95,6 +98,8 @@ try {
   await guardianPage.getByLabel("Legal first name").fill("Sam");
   await guardianPage.getByLabel("Legal last name").fill("Swimmer");
   await guardianPage.getByLabel("Birth date").fill("2014-05-06");
+  await guardianPage.getByLabel("Legal sex").selectOption("Female");
+  await guardianPage.getByLabel("Requested roster group").selectOption(groupA.id);
   await guardianPage.getByRole("button", { name: "Save and continue" }).click();
   await guardianPage.getByRole("button", { name: "Save and continue" }).click();
   const agreements = guardianPage.locator(".registration-agreement");
@@ -136,26 +141,53 @@ try {
 
   const approved = await admin.from("parent_registration_requests").select("status").eq("id", request.data.id).single();
   assert.equal(approved.data.status, "APPROVED");
-  const family = await admin.from("families").select("id,team_id").eq("team_id", teamA.id).single(); assert.ifError(family.error);
+  const family = await admin.from("families").select("id,team_id,primary_email").eq("team_id", teamA.id).single(); assert.ifError(family.error);
+  assert.equal(family.data.primary_email, identities.guardian.email, "primary email must have one canonical family value");
   for (const table of ["swimmers", "family_swimmers", "family_guardians", "family_contacts", "family_registration_profiles", "swimmer_registration_profiles"]) {
     const rows = await admin.from(table).select("*", { count: "exact", head: true }).eq("team_id", teamA.id);
     assert((rows.count ?? 0) > 0, `${table} must be created on approval`);
   }
   const parentMembership = await admin.from("team_memberships").select("role,status").eq("team_id", teamA.id).eq("user_id", ids.guardian).single();
   assert.deepEqual(parentMembership.data, { role: "PARENT", status: "ACTIVE" });
+  const assignedGroup = await admin.from("group_memberships").select("team_id,group_id").eq("team_id", teamA.id).single();
+  assert.deepEqual(assignedGroup.data, { team_id: teamA.id, group_id: groupA.id });
+  const contactRows = await admin.from("family_contacts").select("relationship_label").eq("team_id", teamA.id);
+  assert.equal(contactRows.data.length, 2, "one guardian plus one emergency contact must persist without another guardian login");
   const crossFamilyRead = await ownerB.from("families").select("id").eq("team_id", teamA.id);
   assert.ifError(crossFamilyRead.error); assert.deepEqual(crossFamilyRead.data, []);
   const crossLink = await ownerB.from("family_guardians").insert({ team_id: teamB.id, family_id: family.data.id, membership_id: crypto.randomUUID() });
   assert(crossLink.error, "team B must not link team A family");
 
-  const rejectedClient = await signIn(identities.rejected);
+  const staleClient = await signIn(identities.stale);
   const payload = request.data.registration_payload;
+  payload.family.familyName = "Stale Group Family";
+  payload.family.billingEmail = identities.stale.email;
+  payload.guardians[0].email = identities.stale.email;
+  const staleRequest = await staleClient.rpc("submit_family_registration", { target_team_id: teamA.id, registration_payload: payload });
+  assert.ifError(staleRequest.error);
+  await admin.from("swim_groups").update({ status: "INACTIVE" }).eq("id", groupA.id).throwOnError();
+  const ownerA = await signIn(identities.ownerA);
+  const staleReview = await ownerA.rpc("review_parent_registration", { target_team_id: teamA.id, target_request_id: staleRequest.data, approve: true });
+  assert.ifError(staleReview.error);
+  const staleFamily = await admin.from("families").select("id").eq("team_id", teamA.id).eq("name", "Stale Group Family").single();
+  const staleSwimmer = await admin.from("family_swimmers").select("swimmer_id").eq("team_id", teamA.id).eq("family_id", staleFamily.data.id).single();
+  const staleMembership = await admin.from("group_memberships").select("id").eq("team_id", teamA.id).eq("swimmer_id", staleSwimmer.data.swimmer_id).maybeSingle();
+  assert.equal(staleMembership.data, null, "approval must not assign a group that became inactive");
+
+  const rejectedClient = await signIn(identities.rejected);
   payload.family.familyName = "Rejected Family";
   payload.family.billingEmail = identities.rejected.email;
   payload.guardians[0].email = identities.rejected.email;
+  payload.swimmers[0].requestedGroupId = groupB.id;
+  const foreignRequest = await rejectedClient.rpc("submit_family_registration", { target_team_id: teamA.id, registration_payload: payload });
+  assert(foreignRequest.error, "direct RPC must reject a foreign-team group ID");
+  payload.swimmers[0].requestedGroupId = "";
+  payload.family.billingEmail = "invalid";
+  const invalidContact = await rejectedClient.rpc("submit_family_registration", { target_team_id: teamA.id, registration_payload: payload });
+  assert(invalidContact.error, "direct RPC must reject invalid contact formats");
+  payload.family.billingEmail = identities.rejected.email;
   const rejectedRequest = await rejectedClient.rpc("submit_family_registration", { target_team_id: teamA.id, registration_payload: payload });
   assert.ifError(rejectedRequest.error);
-  const ownerA = await signIn(identities.ownerA);
   const rejectedReview = await ownerA.rpc("review_parent_registration", { target_team_id: teamA.id, target_request_id: rejectedRequest.data, approve: false });
   assert.ifError(rejectedReview.error);
   const rejectedMembership = await admin.from("team_memberships").select("id").eq("team_id", teamA.id).eq("user_id", ids.rejected).maybeSingle();

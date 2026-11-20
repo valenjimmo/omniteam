@@ -8,7 +8,23 @@ describe("family registration", () => {
     expect(errors).toContain("Guardian 1 first name");
     expect(errors).toContain("Emergency contact 1 phone");
     expect(errors).toContain("Swimmer 1 birth date");
+    expect(errors).toContain("Swimmer 1 legal sex");
     expect(errors).toContain("Emergency medical authorization");
+  });
+
+  it("uses the existing legal-sex field and validates shared contact formats", () => {
+    const payload = emptyRegistrationPayload();
+    payload.family.billingEmail = "not-an-email";
+    payload.family.primaryPhone = "12";
+    payload.guardians[0].email = "also-invalid";
+    payload.guardians[0].mobilePhone = "phone";
+    payload.swimmers[0].legalSex = "free text";
+    const errors = validateRegistration(payload, defaultRegistrationConfiguration);
+    expect(errors).toContain("Primary email must be a valid email");
+    expect(errors).toContain("Primary family phone must be a valid phone number");
+    expect(errors).toContain("Guardian 1 email must be a valid email");
+    expect(errors).toContain("Guardian 1 mobile phone must be a valid phone number");
+    expect(errors).toContain("Swimmer 1 legal sex must be a listed value");
   });
 
   it("validates configured family and swimmer questions", () => {

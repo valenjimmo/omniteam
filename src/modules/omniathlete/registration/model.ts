@@ -19,6 +19,10 @@ export type RegistrationAgreement = {
 };
 
 export type RegistrationProgram = { id: string; name: string; description?: string };
+export type RegistrationRosterGroup = { id: string; name: string };
+
+export const legalSexOptions = ["Female", "Male", "Intersex", "Not specified"] as const;
+export type LegalSex = (typeof legalSexOptions)[number];
 
 export type RegistrationConfiguration = {
   version: number;
@@ -52,6 +56,7 @@ export type SwimmerRegistration = {
   address1: string; address2: string; city: string; state: string; postalCode: string; country: string;
   school: string; grade: string; graduationYear: string;
   priorTeam: string; yearsSwimming: string; usaSwimmingId: string; requestedProgramId: string;
+  requestedGroupId: string;
   tshirtSize: string; ethnicity: string; race: string;
   allergies: string; medications: string; medicalConditions: string; disabilitiesOrAccommodations: string;
   physicianName: string; physicianPhone: string; dentistName: string; dentistPhone: string;
@@ -100,7 +105,7 @@ export function emptySwimmer(): SwimmerRegistration {
     firstName: "", middleName: "", lastName: "", preferredName: "", birthDate: "",
     genderIdentity: "", legalSex: "", pronouns: "", email: "", mobilePhone: "",
     addressSameAsFamily: true, address1: "", address2: "", city: "", state: "", postalCode: "", country: "United States",
-    school: "", grade: "", graduationYear: "", priorTeam: "", yearsSwimming: "", usaSwimmingId: "", requestedProgramId: "",
+    school: "", grade: "", graduationYear: "", priorTeam: "", yearsSwimming: "", usaSwimmingId: "", requestedProgramId: "", requestedGroupId: "",
     tshirtSize: "", ethnicity: "", race: "", allergies: "", medications: "", medicalConditions: "",
     disabilitiesOrAccommodations: "", physicianName: "", physicianPhone: "", dentistName: "", dentistPhone: "",
     insuranceCarrier: "", insurancePolicyNumber: "", insuranceGroupNumber: "", insurancePhone: "",
@@ -121,25 +126,42 @@ export function emptyRegistrationPayload(): RegistrationPayload {
 export function validateRegistration(payload: RegistrationPayload, config: RegistrationConfiguration): string[] {
   const errors: string[] = [];
   const required = (value: string, label: string) => { if (!value.trim()) errors.push(label); };
+  const email = (value: string, label: string, optional = false) => {
+    const trimmed = value.trim();
+    if ((!optional || trimmed) && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmed)) errors.push(`${label} must be a valid email`);
+  };
+  const phone = (value: string, label: string, optional = false) => {
+    const trimmed = value.trim();
+    if ((!optional || trimmed) && (!/^[+() .\-\d]+$/.test(trimmed) || !/^\+?\d{7,15}$/.test(trimmed.replace(/[() .\-]/g, "")))) errors.push(`${label} must be a valid phone number`);
+  };
   required(payload.family.familyName, "Family name"); required(payload.family.address1, "Family street address");
   required(payload.family.city, "Family city"); required(payload.family.state, "Family state/province");
   required(payload.family.postalCode, "Family postal code"); required(payload.family.primaryPhone, "Primary family phone");
-  required(payload.family.billingEmail, "Billing email");
+  required(payload.family.billingEmail, "Primary email");
+  email(payload.family.billingEmail, "Primary email"); phone(payload.family.primaryPhone, "Primary family phone");
   if (!payload.guardians.length) errors.push("At least one parent or guardian");
   payload.guardians.forEach((guardian, index) => {
     required(guardian.firstName, `Guardian ${index + 1} first name`); required(guardian.lastName, `Guardian ${index + 1} last name`);
     required(guardian.relationship, `Guardian ${index + 1} relationship`); required(guardian.email, `Guardian ${index + 1} email`);
     required(guardian.mobilePhone, `Guardian ${index + 1} mobile phone`);
+    email(guardian.email, `Guardian ${index + 1} email`); phone(guardian.mobilePhone, `Guardian ${index + 1} mobile phone`);
+    phone(guardian.alternatePhone, `Guardian ${index + 1} alternate phone`, true);
   });
   if (!payload.emergencyContacts.length) errors.push("At least one emergency contact");
   payload.emergencyContacts.forEach((contact, index) => {
     required(contact.firstName, `Emergency contact ${index + 1} first name`); required(contact.lastName, `Emergency contact ${index + 1} last name`);
     required(contact.relationship, `Emergency contact ${index + 1} relationship`); required(contact.phone, `Emergency contact ${index + 1} phone`);
+    phone(contact.phone, `Emergency contact ${index + 1} phone`); phone(contact.alternatePhone, `Emergency contact ${index + 1} alternate phone`, true);
   });
   if (!payload.swimmers.length) errors.push("At least one swimmer");
   payload.swimmers.forEach((swimmer, index) => {
     required(swimmer.firstName, `Swimmer ${index + 1} first name`); required(swimmer.lastName, `Swimmer ${index + 1} last name`);
     required(swimmer.birthDate, `Swimmer ${index + 1} birth date`);
+    required(swimmer.legalSex, `Swimmer ${index + 1} legal sex`);
+    if (swimmer.legalSex && !legalSexOptions.includes(swimmer.legalSex as LegalSex)) errors.push(`Swimmer ${index + 1} legal sex must be a listed value`);
+    email(swimmer.email, `Swimmer ${index + 1} email`, true); phone(swimmer.mobilePhone, `Swimmer ${index + 1} mobile phone`, true);
+    phone(swimmer.physicianPhone, `Swimmer ${index + 1} physician phone`, true); phone(swimmer.dentistPhone, `Swimmer ${index + 1} dentist phone`, true);
+    phone(swimmer.insurancePhone, `Swimmer ${index + 1} insurance phone`, true);
     if (config.programs.length) required(swimmer.requestedProgramId, `Swimmer ${index + 1} program`);
     config.questions.filter((q) => q.appliesTo === "swimmer" && q.required).forEach((question) => {
       const answer = swimmer.answers[question.id]; if (answer === undefined || answer === "" || (Array.isArray(answer) && !answer.length)) errors.push(`${swimmer.firstName || `Swimmer ${index + 1}`}: ${question.label}`);
