@@ -6,9 +6,9 @@ import { createBrowserClient } from "@supabase/ssr";
 import { Check, ChevronLeft, ChevronRight, Plus, Trash2 } from "lucide-react";
 import Link from "next/link";
 import { authCallbackUrl } from "@/lib/site-url";
-import { defaultRegistrationConfiguration, emptyRegistrationPayload, emptySwimmer, legalSexOptions, validateRegistration, type Guardian, type EmergencyContact, type RegistrationConfiguration, type RegistrationPayload, type RegistrationQuestion, type RegistrationRosterGroup, type SwimmerRegistration } from "@/modules/omniathlete/registration/model";
+import { defaultRegistrationConfiguration, emptyRegistrationPayload, emptySwimmer, legalSexOptions, parseRegistrationConfiguration, validateRegistration, type Guardian, type EmergencyContact, type RegistrationPayload, type RegistrationQuestion, type RegistrationRosterGroup, type SwimmerRegistration } from "@/modules/omniathlete/registration/model";
 
-type Team = { team_id: string; registration_open: boolean; registration_configuration?: RegistrationConfiguration; available_groups?: RegistrationRosterGroup[] };
+type Team = { team_id: string; registration_open: boolean; registration_configuration?: unknown; available_groups?: RegistrationRosterGroup[] };
 type RequestStatus = "PENDING" | "APPROVED" | "REJECTED";
 const stepNames = ["Account", "Household", "Contacts", "Swimmers", "Medical", "Agreements", "Review"];
 
@@ -22,6 +22,10 @@ function Question({ q, value, set }: { q: RegistrationQuestion; value: string | 
   if (q.type === "long_text") return <label>{q.label}{q.required && " *"}<textarea value={String(value ?? "")} onChange={(e) => set(e.target.value)} /></label>;
   if (q.type === "yes_no") return <label>{q.label}{q.required && " *"}<select value={value === true ? "yes" : value === false ? "no" : ""} onChange={(e) => set(e.target.value === "yes")}><option value="">Select…</option><option value="yes">Yes</option><option value="no">No</option></select></label>;
   if (q.type === "single_select") return <label>{q.label}{q.required && " *"}<select value={String(value ?? "")} onChange={(e) => set(e.target.value)}><option value="">Select…</option>{q.options?.map((o) => <option key={o}>{o}</option>)}</select></label>;
+  if (q.type === "multi_select") {
+    const selected = Array.isArray(value) ? value : [];
+    return <fieldset><legend>{q.label}{q.required && " *"}</legend>{q.helpText&&<small>{q.helpText}</small>}<div className="registration-checks">{q.options?.map((option) => <label className="registration-check" key={option}><input type="checkbox" checked={selected.includes(option)} onChange={(event) => set(event.target.checked ? [...selected, option] : selected.filter((item) => item !== option))}/>{option}</label>)}</div></fieldset>;
+  }
   return <Field label={q.label} help={q.helpText} required={q.required} type={q.type === "date" ? "date" : "text"} value={String(value ?? "")} set={set} />;
 }
 
@@ -53,9 +57,15 @@ export default function RegistrationPage() {
       ]);
       if (!settings.data || settings.error) { setMessage("This registration link was not found."); setLoading(false); return; }
       const found = settings.data as Team;
-      const configured = found.registration_configuration;
+      const configured = parseRegistrationConfiguration(found.registration_configuration ?? {});
+      if (!configured) {
+        setTeam({ ...found, registration_open: false });
+        setMessage("Registration is temporarily unavailable because the team configuration needs attention.");
+        setLoading(false);
+        return;
+      }
       setTeam(found);
-      setConfig({ ...defaultRegistrationConfiguration, ...configured, programs: configured?.programs ?? [], questions: configured?.questions ?? [], agreements: configured?.agreements ?? defaultRegistrationConfiguration.agreements });
+      setConfig(configured);
       try { const saved = localStorage.getItem(draftKey); if (saved) setData(JSON.parse(saved)); } catch { /* ignore invalid draft */ }
       if (auth.data.user) {
         setAuthenticated(true);
@@ -102,7 +112,7 @@ export default function RegistrationPage() {
   if (loading) return <main className="registration-page"><div className="registration-shell">Checking registration…</div></main>;
   if (!team) return <main className="registration-page"><div className="registration-shell"><Link href="/" className="registration-brand">Omni<span>Team</span></Link><p className="registration-message">{message}</p></div></main>;
   if (requestStatus) return <main className="registration-page"><div className="registration-shell registration-complete"><span><Check /></span><h1>{requestStatus === "PENDING" ? "Registration pending" : requestStatus === "APPROVED" ? "Registration approved" : "Registration not approved"}</h1><p>{requestStatus === "PENDING" ? "Your team is reviewing your registration. No team or family access is active yet." : requestStatus === "APPROVED" ? "Your family access is active." : "The team declined this registration. No team or family access was granted."}</p>{requestStatus === "APPROVED" ? <Link href="/my-family">View my family</Link> : <Link href="/">Return home</Link>}</div></main>;
-  if (!team.registration_open) return <main className="registration-page"><div className="registration-shell"><Link href="/" className="registration-brand">Omni<span>Team</span></Link><h1>Registration closed</h1><p className="registration-message">Registration is currently closed for this team.</p></div></main>;
+  if (!team.registration_open) return <main className="registration-page"><div className="registration-shell"><Link href="/" className="registration-brand">Omni<span>Team</span></Link><h1>Registration closed</h1><p className="registration-message">{message || "Registration is currently closed for this team."}</p></div></main>;
   if (step === 7) return <main className="registration-page"><div className="registration-shell registration-complete"><span><Check /></span><h1>Registration received</h1><p>{message}</p><Link href="/login">Go to sign in</Link></div></main>;
 
   return <main className="registration-page"><div className="registration-shell"><header className="registration-header"><Link href="/" className="registration-brand">Omni<span>Team</span></Link><div><small>FAMILY REGISTRATION</small><strong>{config.title}</strong></div></header><div className="registration-layout">

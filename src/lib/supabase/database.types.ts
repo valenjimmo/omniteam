@@ -3726,6 +3726,10 @@ export type Database = {
         Args: { answer: Json; question: Json }
         Returns: boolean
       }
+      registration_configuration_valid: {
+        Args: { configuration: Json }
+        Returns: boolean
+      }
       registration_valid_calendar_date: {
         Args: { value: string }
         Returns: boolean

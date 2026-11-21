@@ -99,6 +99,51 @@ export const defaultRegistrationConfiguration: RegistrationConfiguration = {
   ],
 };
 
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
+export function parseRegistrationConfiguration(value: unknown): RegistrationConfiguration | null {
+  if (!isRecord(value)) return null;
+  const programs = value.programs ?? [];
+  const questions = value.questions ?? [];
+  const agreements = value.agreements ?? defaultRegistrationConfiguration.agreements;
+  if (!Array.isArray(programs) || !Array.isArray(questions) || !Array.isArray(agreements)) return null;
+  const uniqueIds = (items: unknown[]) => {
+    const ids = items.map((item) => isRecord(item) && typeof item.id === "string" ? item.id.trim() : "");
+    return ids.every(Boolean) && new Set(ids).size === ids.length;
+  };
+  const validPrograms = uniqueIds(programs) && programs.every((item) => isRecord(item)
+    && typeof item.name === "string" && Boolean(item.name.trim())
+    && (item.description === undefined || typeof item.description === "string"));
+  const validQuestions = uniqueIds(questions) && questions.every((item) => {
+    if (!isRecord(item) || typeof item.label !== "string" || !item.label.trim()
+      || typeof item.required !== "boolean"
+      || !["short_text", "long_text", "yes_no", "single_select", "multi_select", "date"].includes(String(item.type))
+      || !["family", "swimmer"].includes(String(item.appliesTo))
+      || (item.helpText !== undefined && typeof item.helpText !== "string")) return false;
+    if (item.options !== undefined && !Array.isArray(item.options)) return false;
+    if (item.type === "single_select" || item.type === "multi_select") {
+      if (!Array.isArray(item.options) || !item.options.length
+        || !item.options.every((option) => typeof option === "string" && Boolean(option.trim()))) return false;
+      if (new Set(item.options).size !== item.options.length) return false;
+    }
+    return true;
+  });
+  const validAgreements = uniqueIds(agreements) && agreements.every((item) => isRecord(item)
+    && typeof item.title === "string" && Boolean(item.title.trim())
+    && typeof item.body === "string" && typeof item.required === "boolean"
+    && typeof item.requireInitials === "boolean");
+  const scalarTypesValid = (value.version === undefined || typeof value.version === "number")
+    && (value.title === undefined || (typeof value.title === "string" && Boolean(value.title.trim())))
+    && (value.introduction === undefined || typeof value.introduction === "string")
+    && (value.supportEmail === undefined || typeof value.supportEmail === "string")
+    && ["collectInsurance", "collectPhysician", "collectSchool", "collectApparel", "collectDemographics"]
+      .every((key) => value[key] === undefined || typeof value[key] === "boolean");
+  if (!validPrograms || !validQuestions || !validAgreements || !scalarTypesValid) return null;
+  return { ...defaultRegistrationConfiguration, ...value, programs, questions, agreements } as RegistrationConfiguration;
+}
+
 export function emptySwimmer(): SwimmerRegistration {
   return {
     id: globalThis.crypto?.randomUUID?.() ?? `swimmer-${Date.now()}`,

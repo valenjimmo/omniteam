@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { defaultRegistrationConfiguration, emptyRegistrationPayload, isCalendarDate, validateRegistration } from "./model";
+import { defaultRegistrationConfiguration, emptyRegistrationPayload, isCalendarDate, parseRegistrationConfiguration, validateRegistration } from "./model";
 
 describe("family registration", () => {
   it("requires household, guardian, emergency, swimmer, and consent information", () => {
@@ -66,5 +66,21 @@ describe("family registration", () => {
     expect(errors).toContain("Consent");
     expect(errors).toContain("Level");
     expect(errors).toContain("Days");
+  });
+
+  it("fails closed for malformed registration configuration", () => {
+    expect(parseRegistrationConfiguration({ programs: {}, questions: [], agreements: [] })).toBeNull();
+    expect(parseRegistrationConfiguration({ programs: [], questions: [
+      { id: "level", label: "Level", required: true, type: "single_select", appliesTo: "family" },
+    ], agreements: [] })).toBeNull();
+    expect(parseRegistrationConfiguration({ programs: [], questions: [
+      { id: "level", label: "Level", required: true, type: "single_select", appliesTo: "family", options: ["Blue", "Blue"] },
+    ], agreements: [] })).toBeNull();
+  });
+
+  it("normalizes a valid partial configuration against safe defaults", () => {
+    const parsed = parseRegistrationConfiguration({ programs: [{ id: "learn", name: "Learn" }], questions: [], agreements: [] });
+    expect(parsed?.title).toBe(defaultRegistrationConfiguration.title);
+    expect(parsed?.programs[0].id).toBe("learn");
   });
 });

@@ -23,6 +23,18 @@ insert into public.swim_groups(id,team_id,name) values
 insert into public.team_registration_settings(team_id,slug,registration_open,registration_configuration)
 values('83000000-0000-4000-8000-000000000001','family-a-registration',true,'{"version":1,"programs":[{"id":"learn","name":"Learn"}],"questions":[{"id":"family-text","label":"Family text","required":true,"type":"short_text","appliesTo":"family"},{"id":"family-choice","label":"Family choice","required":true,"type":"single_select","options":["Blue","Gold"],"appliesTo":"family"},{"id":"swimmer-yes","label":"Swimmer yes/no","required":true,"type":"yes_no","appliesTo":"swimmer"},{"id":"swimmer-days","label":"Swimmer days","required":true,"type":"multi_select","options":["Monday","Wednesday"],"appliesTo":"swimmer"},{"id":"swimmer-date","label":"Swimmer date","required":true,"type":"date","appliesTo":"swimmer"}],"agreements":[]}')
 on conflict(team_id) do update set slug=excluded.slug,registration_open=true,registration_configuration=excluded.registration_configuration;
+select pg_temp.expect(not public.registration_configuration_valid('{"programs":{},"questions":[],"agreements":[]}'::jsonb),'scalar program collection is invalid');
+select pg_temp.expect(not public.registration_configuration_valid('{"programs":[],"questions":[{"id":"level","label":"Level","required":true,"type":"single_select","appliesTo":"family"}],"agreements":[]}'::jsonb),'select question requires options');
+select pg_temp.expect(not public.registration_configuration_valid('{"programs":[],"questions":[{"id":"level","label":"Level","required":true,"type":"single_select","appliesTo":"family","options":["Blue","Blue"]}],"agreements":[]}'::jsonb),'duplicate options are invalid');
+select set_config('request.jwt.claim.sub','81000000-0000-4000-8000-000000000001',true); set local role authenticated;
+select pg_temp.denied($q$select public.configure_team_registration('83000000-0000-4000-8000-000000000001','family-a-registration',true,'{"programs":{},"questions":[],"agreements":[]}'::jsonb)$q$);
+select pg_temp.denied($q$select public.configure_team_registration('83000000-0000-4000-8000-000000000001','family-a-registration',true,'{"programs":[],"questions":[{"id":"same","label":"One","required":true,"type":"short_text","appliesTo":"family"},{"id":"same","label":"Two","required":false,"type":"short_text","appliesTo":"family"}],"agreements":[]}'::jsonb)$q$);
+select public.configure_team_registration('83000000-0000-4000-8000-000000000001','family-a-registration',true,(select registration_configuration from public.team_registration_settings where team_id='83000000-0000-4000-8000-000000000001'));
+reset role;
+select pg_temp.expect((select registration_open and jsonb_array_length(registration_configuration->'programs')=1 from public.team_registration_settings where team_id='83000000-0000-4000-8000-000000000001'),'rejected configuration leaves prior settings unchanged');
+select set_config('request.jwt.claim.sub','81000000-0000-4000-8000-000000000002',true); set local role authenticated;
+select pg_temp.denied($q$select public.configure_team_registration('83000000-0000-4000-8000-000000000001','family-a-registration',false,'{"programs":[],"questions":[],"agreements":[]}'::jsonb)$q$);
+reset role;
 create temp table family_cases(label text primary key,payload jsonb,request_id uuid); grant all on family_cases to authenticated;
 insert into family_cases(label,payload) values ('approved',jsonb_build_object('version',1,
  'family',jsonb_build_object('familyName','Approved Family','address1','100 Swim Lane','city','Seattle','state','WA','postalCode','98101','primaryPhone','206-555-0100','billingEmail','parent-a@example.test'),

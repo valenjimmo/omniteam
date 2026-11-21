@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { createBrowserClient } from "@supabase/ssr";
 import Link from "next/link";
-import { defaultRegistrationConfiguration, type RegistrationConfiguration, type RegistrationQuestionType } from "@/modules/omniathlete/registration/model";
+import { defaultRegistrationConfiguration, parseRegistrationConfiguration, type RegistrationConfiguration, type RegistrationQuestionType } from "@/modules/omniathlete/registration/model";
 
 type Membership = { id: string; team_id: string; user_id: string;
   role: "OWNER" | "ADMIN" | "COACH" | "PARENT"; can_assign_access: boolean };
@@ -55,10 +55,14 @@ export default function TeamAccessPage() {
     setRequests((requestResult.data ?? []) as Request[]);
     setSlug(settingResult.data?.slug ?? "");
     setRegistrationOpen(settingResult.data?.registration_open ?? false);
-    const configured = settingResult.data?.registration_configuration as RegistrationConfiguration | undefined;
-    setRegistrationConfig({ ...defaultRegistrationConfiguration, ...configured,
-      programs: configured?.programs ?? [], questions: configured?.questions ?? [],
-      agreements: configured?.agreements ?? defaultRegistrationConfiguration.agreements });
+    const configured = parseRegistrationConfiguration(settingResult.data?.registration_configuration ?? {});
+    if (!configured) {
+      setRegistrationOpen(false);
+      setRegistrationConfig(defaultRegistrationConfiguration);
+      setMessage("Registration was closed because its saved configuration is invalid. Review and save these defaults to repair it.");
+      return;
+    }
+    setRegistrationConfig(configured);
     setMessage("");
   }, [client]);
 

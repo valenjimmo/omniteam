@@ -38,6 +38,7 @@ Every prompt below inherits this contract:
 | DEV-06 | Preserve staff roles during family approval and enforce configured intake | DEV-04 | VERIFIED | 2026-11-20 | — | Forward migration preserves existing roles/reactivates membership, validates captured programs/questions and real dates; typecheck, 93 unit tests, and full disposable PostgreSQL suite pass. Real Supabase and authenticated browser journeys were not run. |
 | DEV-07 | Generate and verify the complete Supabase TypeScript schema contract | DEV-06 | VERIFIED | 2026-11-20 | — | All migrations applied to clean PostgreSQL 17.12; complete types generated with Supabase CLI 2.117.0/Postgres Meta 0.99.0. Immediate regeneration, typecheck, and 22 focused tests pass; the full local Supabase service stack was not run, and the isolated target used the disposable-suite auth/storage bootstrap and pg_jsonschema shim. |
 | DEV-08 | Reconcile subscription workflow reference documentation | DEV-02 | VERIFIED | 2026-11-20 | — | Reference now matches the six-stage UI, public-plan/RPC trust boundary, canonical team profile, atomic completion, authorized setup redirect, and extending migrations; documentation diff reviewed. |
+| DEV-09 | Validate registration configuration and fail closed | DEV-06 | DONE | 2026-11-20 | — | Forward migration enforces trusted configuration shape and closes malformed legacy rows; clients fail closed and multi-select renders correctly. Typecheck, 95 unit tests, lint, build, and disposable PostgreSQL suite pass; authenticated browser acceptance awaits local Supabase. |
 
 When starting a run, set its status and date. When finishing, record the commit
 or PR if one exists and a one-line outcome. Never mark a run `VERIFIED` when
@@ -247,6 +248,16 @@ route matches current code and canonical module ownership. Update AUD-11 and thi
 tracker after a documentation diff review.
 ```
 
+## DEV-09 — Registration configuration contract
+
+**Covers:** AUD-12. **Depends on:** DEV-06.
+
+Implemented directly from the consolidated AUD-12 evidence: validate the full
+supported configuration at the owner RPC, preserve but close malformed legacy
+rows for repair, make public and owner clients fail closed, render supported
+multi-select questions, and cover malformed/valid/cross-team database cases.
+No product, pricing, or entitlement changes are included.
+
 ## Recurring post-check-in audit standard
 
 Run AUDIT-01 after a meaningful set of development check-ins (typically a
@@ -260,6 +271,7 @@ evidence snapshots; durable open work is deduplicated into `AUDIT_BACKLOG.md`.
 
 | Date | Range/scope | Audit file | Backlog updated | Result |
 | --- | --- | --- | --- | --- |
+| 2026-11-20 | `cf86088..c862472` (DEV-06–08) | `audits/2026-11-20-dev-06-08.md` | AUD-12 | CONSOLIDATED; DEV-09 implemented, browser verification remains |
 | 2026-11-20 | `a487e17..07734fc` (DEV-01–04), checked against `cf86088` | `audits/2026-11-20-dev-01-04.md` | AUD-08–AUD-11 | CONSOLIDATED; DEV-06 is next runnable |
 
 ### AUDIT-01 — Post-check-in audit

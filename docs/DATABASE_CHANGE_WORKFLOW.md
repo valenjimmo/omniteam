@@ -38,6 +38,13 @@ IDs, required and typed family/swimmer answers, configured select options, and
 real calendar dates. Family access remains the independent `family_guardians`
 relationship.
 
+Migration `202611200002_registration_configuration_validation.sql` validates
+the supported program, question, option, and agreement structure before an
+owner can save registration settings. It closes malformed legacy
+configurations without discarding their JSON, leaves them available for owner
+repair, and uses a `NOT VALID` constraint so safe new writes are enforced
+without making deployment depend on undocumented legacy content.
+
 ## One-time transition for the existing test project
 
 Some schema was applied with the Supabase SQL Editor before migration tracking was established. **Do not run `supabase db push` yet:** it could try to replay those migrations over existing tables. In the Supabase SQL Editor, first inspect history:

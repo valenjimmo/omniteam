@@ -36,6 +36,7 @@ Before implementing an item, confirm product names and ownership against
 | AUD-09 | Configured registration validation parity | Client and trusted submission RPC | VERIFIED | DEV-06 |
 | AUD-10 | Complete generated Supabase types | Schema/type generation contract | VERIFIED | DEV-07 |
 | AUD-11 | Subscription workflow documentation drift | Reference documentation | VERIFIED | DEV-08 |
+| AUD-12 | Registration configuration schema validation | Configuration RPC and public registration route | IN PROGRESS | DEV-09 |
 
 ## AUD-08: Family approval preserves staff role
 
@@ -127,6 +128,38 @@ plan mappings, team-owned profile authority, atomic retry-safe completion, the
 membership-authorized setup redirect, and the migrations that extend the
 original subscription model. A documentation diff review confirmed that it
 does not change product names, pricing, live-billing design, or product code.
+
+## AUD-12: Registration configuration schema validation
+
+**Status:** `IN PROGRESS` (2026-11-20)
+
+The owner-authorized `configure_team_registration` RPC currently accepts any
+size-bounded JSON object, while the public form and submission RPC assume typed
+program, question, and agreement arrays. Enforce the supported configuration
+schema at the trusted write boundary, handle any malformed legacy rows safely,
+and make the public route fail closed instead of throwing. Cover malformed
+direct RPC calls, valid rendering and submission for every supported question
+type, unchanged prior configuration after rejection, legacy-row handling, and
+team isolation. Evidence, minimal fix, and verification limits are in
+`audits/2026-11-20-dev-06-08.md`.
+
+DEV-09 added forward migration
+`202611200002_registration_configuration_validation.sql`. The trusted owner RPC
+now rejects malformed collections, duplicate/empty IDs and options, unsupported
+question types/scopes, and incorrectly typed program, question, agreement, or
+scalar fields without changing the prior settings. Malformed legacy rows are
+closed without discarding their JSON and remain repairable with a valid owner
+write. Shared client parsing fails closed on legacy data, the owner screen
+offers safe defaults for repair, and public registration displays an
+unavailable message instead of rendering invalid structures. Multi-select
+questions now render accessible checkbox choices and submit arrays.
+
+Typecheck, 95 unit tests, configured lint, production build, and the full
+disposable PostgreSQL migration/isolation suite pass. Database coverage includes
+malformed direct RPC calls, an unchanged prior configuration, a valid owner
+write, and cross-team denial. The item remains `IN PROGRESS` only because the
+required authenticated public-route browser check could not run without a local
+Supabase service stack.
 
 ## Prompt 3: Club registration validation
 
