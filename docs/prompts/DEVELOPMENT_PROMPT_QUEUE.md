@@ -34,7 +34,7 @@ Every prompt below inherits this contract:
 | DEV-02 | Six-step club onboarding, validation, review, creation | DEV-01 | DONE | 2026-11-19 | `c0cdea2` | Six-stage onboarding, public-plan checkout, atomic retry-safe provisioning, editable review, and authorized setup shell; Docker-backed Supabase unavailable. |
 | DEV-03 | Dashboard setup checklist and progress | DEV-01, DEV-02 | VERIFIED | 2026-11-19 | — | Compact dashboard card, focused setup editor, derived required completion, entitlement-aware progress, and two-team denial coverage; typecheck, 90 unit tests, and disposable PostgreSQL suite pass. |
 | DEV-04 | Family/member baseline additions | DEV-01 | DONE | 2026-11-19 | — | Existing flow extended with legal-sex/contact validation and approval-time roster requests; typecheck, 91 unit tests, and disposable PostgreSQL suite pass; real browser/Supabase suite unavailable. |
-| DEV-05 | Cross-feature regression, security, and audit closeout | DEV-02–04 | NOT RUN | — | — | — |
+| DEV-05 | Cross-feature regression, security, and audit closeout | DEV-02–04 | BLOCKED | 2026-11-20 | — | Unit, typecheck, broad lint, build, disposable PostgreSQL, and standalone Chromium checks pass; real Supabase family/browser integration is unverified because Docker/Podman and local API credentials are unavailable. |
 
 When starting a run, set its status and date. When finishing, record the commit
 or PR if one exists and a one-line outcome. Never mark a run `VERIFIED` when

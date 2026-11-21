@@ -31,7 +31,7 @@ Before implementing an item, confirm product names and ownership against
 | Prompt 4 | Club registration review | Client review summary and step editing | VERIFIED | DEV-02 |
 | Prompt 5 | Club creation boundary | Supabase RPCs, ownership, setup completion, redirect | VERIFIED | DEV-02, DEV-03 |
 | Prompt 6 | Club setup checklist | Dashboard checklist and progress logic | VERIFIED | DEV-03 |
-| Prompt 7 | Family/member join baseline | Family registration form, approval RPC, persisted roster data | IN PROGRESS | DEV-04 |
+| Prompt 7 | Family/member join baseline | Family registration form, approval RPC, persisted roster data | BLOCKED | DEV-04 |
 
 ## Prompt 3: Club registration validation
 
@@ -862,9 +862,27 @@ operational typed-storage requirement was found.
 Typecheck, all 91 unit tests, migration application, and the rollback-only
 family registration database suite pass. The database suite covers direct-RPC
 validation, foreign/stale groups, approval, rejection, guardian/contact
-persistence, parent privacy, and two-team isolation. Keep this entry `IN
-PROGRESS` until the real local-Supabase browser integration suite is run; its
-required `API_URL`, `ANON_KEY`, and `SERVICE_ROLE_KEY` were unavailable.
+persistence, parent privacy, and two-team isolation. DEV-04 left this entry `IN
+PROGRESS` pending the real local-Supabase browser integration suite; its required
+`API_URL`, `ANON_KEY`, and `SERVICE_ROLE_KEY` were unavailable.
+
+### DEV-05 closeout (2026-11-20)
+
+Prompt 7 is `BLOCKED`, not verified. The 91-test unit suite, typecheck, broad
+ESLint run, production build, all tracked migrations on disposable PostgreSQL,
+and rollback-only family validation/approval/privacy/two-team suite pass. The
+real browser journey still cannot run: local Supabase reports that Docker and
+Podman are unavailable, and `API_URL`, `ANON_KEY`, and `SERVICE_ROLE_KEY` are
+not configured. No staging result is claimed.
+
+All other indexed entries remain `VERIFIED`: the same DEV-05 run reapplied every
+tracked migration and passed the club-profile constraints/plan mapping/owner
+and two-team suite, onboarding validation/ownership/atomicity/retry/slug suite,
+and checklist authorization/multi-team/entitlement suite. Generated types
+typecheck, purge/hard-delete coverage was inspected, and the standalone
+Chromium suite passed 18 responsive layout/theme combinations, keyboard checks,
+and axe WCAG A/AA checks. Those browser checks exercise the existing OmniSite
+fixture, not the blocked authenticated family journey.
 
 ## Template for the next audit
 
