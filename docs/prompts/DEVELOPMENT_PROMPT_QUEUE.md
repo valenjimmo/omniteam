@@ -35,6 +35,9 @@ Every prompt below inherits this contract:
 | DEV-03 | Dashboard setup checklist and progress | DEV-01, DEV-02 | VERIFIED | 2026-11-19 | — | Compact dashboard card, focused setup editor, derived required completion, entitlement-aware progress, and two-team denial coverage; typecheck, 90 unit tests, and disposable PostgreSQL suite pass. |
 | DEV-04 | Family/member baseline additions | DEV-01 | DONE | 2026-11-19 | — | Existing flow extended with legal-sex/contact validation and approval-time roster requests; typecheck, 91 unit tests, and disposable PostgreSQL suite pass; real browser/Supabase suite unavailable. |
 | DEV-05 | Cross-feature regression, security, and audit closeout | DEV-02–04 | BLOCKED | 2026-11-20 | — | Unit, typecheck, broad lint, build, disposable PostgreSQL, and standalone Chromium checks pass; real Supabase family/browser integration is unverified because Docker/Podman and local API credentials are unavailable. |
+| DEV-06 | Preserve staff roles during family approval and enforce configured intake | DEV-04 | NOT RUN | — | — | Covers AUD-08 and AUD-09. |
+| DEV-07 | Generate and verify the complete Supabase TypeScript schema contract | DEV-06 | NOT RUN | — | — | Covers AUD-10; requires a fully migrated generation target. |
+| DEV-08 | Reconcile subscription workflow reference documentation | DEV-02 | NOT RUN | — | — | Covers AUD-11; documentation-only. |
 
 When starting a run, set its status and date. When finishing, record the commit
 or PR if one exists and a one-line outcome. Never mark a run `VERIFIED` when
@@ -176,6 +179,74 @@ or CLOSED with concise evidence, update this run tracker, and produce a short
 residual-risk list.
 ```
 
+## DEV-06 — Family approval role safety and trusted intake validation
+
+**Covers:** AUD-08 and AUD-09.
+
+```text
+Read the Run contract, the 2026-11-20 DEV-01–04 audit, AUD-08, and AUD-09. Add a
+forward migration; do not rewrite historical migrations or redesign the family
+registration UI.
+
+Preserve any existing OWNER, ADMIN, or COACH role when approving a registration,
+reactivate an inactive membership without changing its role, and assign PARENT
+only when creating a new membership. Keep family_guardians as the independent
+family-access relationship. At submit_family_registration, enforce the current
+captured registration configuration for required program selections and required
+family/swimmer questions, including supported answer types/options. Reject birth
+dates that are not real calendar dates before a pending request is created, and
+mirror that date check in shared client validation.
+
+Non-goals: new role types, separate guardian logins, program-to-roster mapping,
+or new registration fields. Preserve tenant composite links, approval authority,
+immutable snapshots, and stale roster-group behavior.
+
+Acceptance: database tests cover new and existing OWNER/ADMIN/COACH/inactive
+memberships, impossible dates, missing/invalid configured answers and programs,
+valid submission/approval, and two-team isolation. Add focused unit tests, run
+typecheck and the full disposable database suite, and update AUD-08/AUD-09 plus
+this tracker with exact verification limits.
+```
+
+## DEV-07 — Complete generated Supabase types
+
+**Covers:** AUD-10. **Depends on:** DEV-06.
+
+```text
+Read the Run contract, the 2026-11-20 DEV-01–04 audit, and AUD-10. Apply every
+tracked migration to a clean generation target and generate the complete
+Supabase TypeScript Database type without manually pruning tables, views,
+functions, enums, composite types, or relationships. Add a documented,
+reproducible generation/check command and replace only incompatible local casts
+touched by the full contract.
+
+Non-goals: schema redesign, Prisma, or broad application refactors. Do not claim
+the artifact is generated if the required database target is unavailable.
+
+Acceptance: representative platform, club, checkout, setup, family-registration,
+and module schema/RPC symbols are present; immediate regeneration has no diff;
+typecheck and focused consumers pass. Update AUD-10 and this tracker, recording
+the exact database/generator versions and any unavailable environment.
+```
+
+## DEV-08 — Subscription workflow reference reconciliation
+
+**Covers:** AUD-11. **Depends on:** DEV-02.
+
+```text
+Read canonical product guidance, the current /subscribe implementation and RPCs,
+the 2026-11-20 DEV-01–04 audit, and AUD-11. Update only
+docs/reference/SUBSCRIPTION_WORKFLOW.md to describe the six-stage mock onboarding,
+public-plan mapping, canonical team-owned profile, atomic completion, and
+authorized setup-checklist redirect. Identify the migrations that extend the
+original subscription model.
+
+Non-goals: product naming changes, pricing decisions, live billing design, or
+product-code changes. Acceptance: every described field, trust boundary, and
+route matches current code and canonical module ownership. Update AUD-11 and this
+tracker after a documentation diff review.
+```
+
 ## Recurring post-check-in audit standard
 
 Run AUDIT-01 after a meaningful set of development check-ins (typically a
@@ -189,7 +260,7 @@ evidence snapshots; durable open work is deduplicated into `AUDIT_BACKLOG.md`.
 
 | Date | Range/scope | Audit file | Backlog updated | Result |
 | --- | --- | --- | --- | --- |
-| — | — | — | — | NOT RUN |
+| 2026-11-20 | `a487e17..07734fc` (DEV-01–04), checked against `cf86088` | `audits/2026-11-20-dev-01-04.md` | AUD-08–AUD-11 | CONSOLIDATED; DEV-06 is next runnable |
 
 ### AUDIT-01 — Post-check-in audit
 

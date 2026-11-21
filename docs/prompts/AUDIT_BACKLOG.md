@@ -32,6 +32,56 @@ Before implementing an item, confirm product names and ownership against
 | Prompt 5 | Club creation boundary | Supabase RPCs, ownership, setup completion, redirect | VERIFIED | DEV-02, DEV-03 |
 | Prompt 6 | Club setup checklist | Dashboard checklist and progress logic | VERIFIED | DEV-03 |
 | Prompt 7 | Family/member join baseline | Family registration form, approval RPC, persisted roster data | BLOCKED | DEV-04 |
+| AUD-08 | Family approval preserves staff role | Membership/guardian approval boundary | READY | DEV-06 |
+| AUD-09 | Configured registration validation parity | Client and trusted submission RPC | READY | DEV-06 |
+| AUD-10 | Complete generated Supabase types | Schema/type generation contract | READY | DEV-07 |
+| AUD-11 | Subscription workflow documentation drift | Reference documentation | READY | DEV-08 |
+
+## AUD-08: Family approval preserves staff role
+
+**Status:** `READY`
+
+Approval currently updates a conflicting membership to `role='PARENT'` in
+`202611190003_family_registration_baseline.sql`, even though staff role and
+guardian relationship are separate and an admin may also be a parent. Preserve
+an existing OWNER/ADMIN/COACH role, reactivate inactive membership without role
+replacement, use PARENT only for a new membership, and create the same-team
+guardian link in every case. Verify all existing roles plus a new parent and
+two-team denial. Evidence and minimal fix are in
+`audits/2026-11-20-dev-01-04.md`.
+
+## AUD-09: Configured registration validation parity
+
+**Status:** `READY`
+
+The client requires configured program and question values, but the trusted
+submission RPC does not validate them; date-shaped but impossible birth dates
+can remain pending until approval fails on the database cast. Enforce the
+captured configuration, supported answer types/options, and real calendar dates
+at submission, with matching client date validation. Cover direct bypasses,
+valid configured submissions, approval, and tenant isolation. Evidence and
+acceptance tests are in `audits/2026-11-20-dev-01-04.md`.
+
+## AUD-10: Complete generated Supabase types
+
+**Status:** `READY`
+
+The committed `database.types.ts` is a small handwritten projection that labels
+itself generated while omitting most tracked tables and RPCs. Generate the full
+contract from a clean fully migrated database, retain the complete output, and
+add a reproducible generation/check command. Regeneration must be clean and
+typecheck must pass. Evidence and verification limits are in
+`audits/2026-11-20-dev-01-04.md`.
+
+## AUD-11: Subscription workflow documentation drift
+
+**Status:** `READY`
+
+`docs/reference/SUBSCRIPTION_WORKFLOW.md` still describes the former team-name
+and timezone flow followed by `/dashboard`. Reconcile it with the six-stage
+profile intake, public plan mapping, atomic trusted completion, and authorized
+setup-checklist redirect. This is documentation-only and must not redefine the
+canonical product tree. Evidence is in `audits/2026-11-20-dev-01-04.md`.
 
 ## Prompt 3: Club registration validation
 
