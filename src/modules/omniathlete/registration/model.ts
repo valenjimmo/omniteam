@@ -123,6 +123,34 @@ export function emptyRegistrationPayload(): RegistrationPayload {
   };
 }
 
+export function isCalendarDate(value: string): boolean {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) return false;
+  const [year, month, day] = value.split("-").map(Number);
+  const date = new Date(Date.UTC(year, month - 1, day));
+  return date.getUTCFullYear() === year
+    && date.getUTCMonth() === month - 1
+    && date.getUTCDate() === day;
+}
+
+function isQuestionAnswerValid(
+  answer: string | string[] | boolean | undefined,
+  question: RegistrationQuestion,
+): boolean {
+  if (answer === undefined || answer === "" || (Array.isArray(answer) && !answer.length)) {
+    return !question.required;
+  }
+  if (question.type === "yes_no") return typeof answer === "boolean";
+  if (question.type === "single_select") {
+    return typeof answer === "string" && (question.options ?? []).includes(answer);
+  }
+  if (question.type === "multi_select") {
+    return Array.isArray(answer)
+      && answer.every((value) => typeof value === "string" && (question.options ?? []).includes(value));
+  }
+  if (question.type === "date") return typeof answer === "string" && isCalendarDate(answer);
+  return typeof answer === "string";
+}
+
 export function validateRegistration(payload: RegistrationPayload, config: RegistrationConfiguration): string[] {
   const errors: string[] = [];
   const required = (value: string, label: string) => { if (!value.trim()) errors.push(label); };
@@ -157,18 +185,19 @@ export function validateRegistration(payload: RegistrationPayload, config: Regis
   payload.swimmers.forEach((swimmer, index) => {
     required(swimmer.firstName, `Swimmer ${index + 1} first name`); required(swimmer.lastName, `Swimmer ${index + 1} last name`);
     required(swimmer.birthDate, `Swimmer ${index + 1} birth date`);
+    if (swimmer.birthDate && !isCalendarDate(swimmer.birthDate)) errors.push(`Swimmer ${index + 1} birth date must be a real calendar date`);
     required(swimmer.legalSex, `Swimmer ${index + 1} legal sex`);
     if (swimmer.legalSex && !legalSexOptions.includes(swimmer.legalSex as LegalSex)) errors.push(`Swimmer ${index + 1} legal sex must be a listed value`);
     email(swimmer.email, `Swimmer ${index + 1} email`, true); phone(swimmer.mobilePhone, `Swimmer ${index + 1} mobile phone`, true);
     phone(swimmer.physicianPhone, `Swimmer ${index + 1} physician phone`, true); phone(swimmer.dentistPhone, `Swimmer ${index + 1} dentist phone`, true);
     phone(swimmer.insurancePhone, `Swimmer ${index + 1} insurance phone`, true);
-    if (config.programs.length) required(swimmer.requestedProgramId, `Swimmer ${index + 1} program`);
-    config.questions.filter((q) => q.appliesTo === "swimmer" && q.required).forEach((question) => {
-      const answer = swimmer.answers[question.id]; if (answer === undefined || answer === "" || (Array.isArray(answer) && !answer.length)) errors.push(`${swimmer.firstName || `Swimmer ${index + 1}`}: ${question.label}`);
+    if (config.programs.length && !config.programs.some((program) => program.id === swimmer.requestedProgramId)) errors.push(`Swimmer ${index + 1} program`);
+    config.questions.filter((q) => q.appliesTo === "swimmer").forEach((question) => {
+      if (!isQuestionAnswerValid(swimmer.answers[question.id], question)) errors.push(`${swimmer.firstName || `Swimmer ${index + 1}`}: ${question.label}`);
     });
   });
-  config.questions.filter((q) => q.appliesTo === "family" && q.required).forEach((question) => {
-    const answer = payload.familyAnswers[question.id]; if (answer === undefined || answer === "" || (Array.isArray(answer) && !answer.length)) errors.push(question.label);
+  config.questions.filter((q) => q.appliesTo === "family").forEach((question) => {
+    if (!isQuestionAnswerValid(payload.familyAnswers[question.id], question)) errors.push(question.label);
   });
   config.agreements.filter((agreement) => agreement.required).forEach((agreement) => {
     const acceptance = payload.agreements[agreement.id];

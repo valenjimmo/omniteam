@@ -14,6 +14,8 @@
     "test:family-registration": "node scripts/test-family-registration-local.mjs",
     "test:staging": "node scripts/test-omnisite-staging.mjs",
     "test:browser": "node scripts/test-omnisite-browser.mjs",
+    "types:generate": "node scripts/generate-database-types.mjs",
+    "types:check": "node scripts/generate-database-types.mjs --check",
     "operations:production": "node scripts/omnisite-operations.mjs",
     "smoke:production": "node scripts/production-smoke.mjs",
     "migration:manual": "node scripts/prepare-manual-migration.mjs",

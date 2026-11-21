@@ -30,6 +30,14 @@ groups through the public registration projection. Requested groups are checked
 again during authorized approval before the existing composite tenant group
 membership is created; stale requests do not create an assignment.
 
+Migration `202611200001_family_registration_role_and_intake_validation.sql`
+preserves an existing membership role when family approval reactivates access
+and assigns PARENT only to a newly created membership. It also validates the
+current configuration captured with each submitted request: configured program
+IDs, required and typed family/swimmer answers, configured select options, and
+real calendar dates. Family access remains the independent `family_guardians`
+relationship.
+
 ## One-time transition for the existing test project
 
 Some schema was applied with the Supabase SQL Editor before migration tracking was established. **Do not run `supabase db push` yet:** it could try to replay those migrations over existing tables. In the Supabase SQL Editor, first inspect history:
@@ -55,6 +63,25 @@ The current connection check found `organizations`, `teams`, `swimmers`, and `fa
 3. Run `supabase migration list` to compare local and remote versions. A local version with no remote version is pending.
 4. Review `supabase db push --dry-run`; then run `supabase db push` once against the intended project. It applies pending migrations in order and records successful versions.
 5. Run `supabase migration list` again and verify the app. Repeat separately for each Supabase project; migration history is per database.
+
+## Generated TypeScript database contract
+
+Generate the complete public-schema contract only from a clean target with every
+tracked migration applied. With local Supabase running, recreate its disposable
+database and generate the artifact:
+
+```bash
+supabase db reset --local
+npm run types:generate
+npm run types:check
+```
+
+`types:generate` and `types:check` use `supabase gen types typescript --local
+--schema public`. CI or an isolated PostgreSQL target may instead provide
+`OMNITEAM_TYPES_DB_URL`; never point that variable at a retained database merely
+to generate types. `types:check` regenerates to a temporary file and fails when
+the committed artifact differs. Commit the generator output in full: do not
+prune tables, views, functions, enums, composite types, or relationships.
 
 Do not make routine remote schema changes through the Dashboard SQL/Table Editor after adopting this workflow; that bypasses CLI history. If an emergency edit is necessary, capture and reconcile it before the next push. Never run `supabase db reset` against a remote project.
 

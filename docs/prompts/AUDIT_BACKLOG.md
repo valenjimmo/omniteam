@@ -31,15 +31,15 @@ Before implementing an item, confirm product names and ownership against
 | Prompt 4 | Club registration review | Client review summary and step editing | VERIFIED | DEV-02 |
 | Prompt 5 | Club creation boundary | Supabase RPCs, ownership, setup completion, redirect | VERIFIED | DEV-02, DEV-03 |
 | Prompt 6 | Club setup checklist | Dashboard checklist and progress logic | VERIFIED | DEV-03 |
-| Prompt 7 | Family/member join baseline | Family registration form, approval RPC, persisted roster data | BLOCKED | DEV-04 |
-| AUD-08 | Family approval preserves staff role | Membership/guardian approval boundary | READY | DEV-06 |
-| AUD-09 | Configured registration validation parity | Client and trusted submission RPC | READY | DEV-06 |
-| AUD-10 | Complete generated Supabase types | Schema/type generation contract | READY | DEV-07 |
-| AUD-11 | Subscription workflow documentation drift | Reference documentation | READY | DEV-08 |
+| Prompt 7 | Family/member join baseline | Family registration form, approval RPC, persisted roster data | VERIFIED | DEV-04, DEV-06 |
+| AUD-08 | Family approval preserves staff role | Membership/guardian approval boundary | VERIFIED | DEV-06 |
+| AUD-09 | Configured registration validation parity | Client and trusted submission RPC | VERIFIED | DEV-06 |
+| AUD-10 | Complete generated Supabase types | Schema/type generation contract | VERIFIED | DEV-07 |
+| AUD-11 | Subscription workflow documentation drift | Reference documentation | VERIFIED | DEV-08 |
 
 ## AUD-08: Family approval preserves staff role
 
-**Status:** `READY`
+**Status:** `VERIFIED` (2026-11-20)
 
 Approval currently updates a conflicting membership to `role='PARENT'` in
 `202611190003_family_registration_baseline.sql`, even though staff role and
@@ -50,9 +50,18 @@ guardian link in every case. Verify all existing roles plus a new parent and
 two-team denial. Evidence and minimal fix are in
 `audits/2026-11-20-dev-01-04.md`.
 
+DEV-06 added forward migration
+`202611200001_family_registration_role_and_intake_validation.sql`. Approval now
+assigns `PARENT` only on insert; conflicts update only `status='ACTIVE'`, so
+existing OWNER, ADMIN, COACH, and inactive COACH cases retain their roles while
+receiving independent same-team `family_guardians` links. The full disposable
+PostgreSQL suite passed these cases plus new-parent approval and cross-team
+review denial. This was not rerun against a real Supabase project or through an
+authenticated browser journey.
+
 ## AUD-09: Configured registration validation parity
 
-**Status:** `READY`
+**Status:** `VERIFIED` (2026-11-20)
 
 The client requires configured program and question values, but the trusted
 submission RPC does not validate them; date-shaped but impossible birth dates
@@ -62,9 +71,20 @@ at submission, with matching client date validation. Cover direct bypasses,
 valid configured submissions, approval, and tenant isolation. Evidence and
 acceptance tests are in `audits/2026-11-20-dev-01-04.md`.
 
+DEV-06 validates the current configuration used for the immutable request
+snapshot: every configured program selection must match a configured ID, and
+family/swimmer answers are checked for required presence, supported JSON type,
+select options, multi-select options, and real date values. Birth dates are
+validated as real calendar dates in the RPC and shared client model. Focused
+unit tests passed (93 total repository tests), typecheck passed, and the full
+disposable PostgreSQL suite passed missing/invalid answer and program cases,
+impossible dates, valid submission/approval, and two-team isolation. The
+disposable runner uses its documented pg_jsonschema shim; real Supabase and an
+authenticated registration browser journey were not run.
+
 ## AUD-10: Complete generated Supabase types
 
-**Status:** `READY`
+**Status:** `VERIFIED` (2026-11-20)
 
 The committed `database.types.ts` is a small handwritten projection that labels
 itself generated while omitting most tracked tables and RPCs. Generate the full
@@ -73,15 +93,40 @@ add a reproducible generation/check command. Regeneration must be clean and
 typecheck must pass. Evidence and verification limits are in
 `audits/2026-11-20-dev-01-04.md`.
 
+DEV-07 applied every tracked migration through
+`202611200001_family_registration_role_and_intake_validation.sql` to an empty
+PostgreSQL 17.12 (Homebrew) cluster and generated the complete public-schema
+artifact with Supabase CLI 2.117.0 and its Postgres Meta 0.99.0 image. The
+unpruned output includes all 63 public tables, views, 141 public routines, five
+enums, composite types, relationships, generator helpers, and constants. It
+contains representative platform, club, checkout, setup, family-registration,
+OmniAthlete, OmniSite, schedule, volunteer, and connect symbols.
+
+`npm run types:generate` now regenerates the artifact, while `npm run
+types:check` generates to a temporary file and detects drift. Immediate
+regeneration against the same clean target had no diff; typecheck and 22 focused
+consumer/model tests passed. The full local Supabase service stack was not run;
+the isolated target used the disposable database suite's
+auth/storage bootstrap and pg_jsonschema compatibility shim. The shim is outside
+the generated public schema and does not replace or prune generated contract
+members. No retained or linked database was modified.
+
 ## AUD-11: Subscription workflow documentation drift
 
-**Status:** `READY`
+**Status:** `VERIFIED` (2026-11-20)
 
 `docs/reference/SUBSCRIPTION_WORKFLOW.md` still describes the former team-name
 and timezone flow followed by `/dashboard`. Reconcile it with the six-stage
 profile intake, public plan mapping, atomic trusted completion, and authorized
 setup-checklist redirect. This is documentation-only and must not redefine the
 canonical product tree. Evidence is in `audits/2026-11-20-dev-01-04.md`.
+
+DEV-08 reconciled the reference with the current six-stage UI and trusted RPC
+boundaries. It now records all collected and persisted fields, the three public
+plan mappings, team-owned profile authority, atomic retry-safe completion, the
+membership-authorized setup redirect, and the migrations that extend the
+original subscription model. A documentation diff review confirmed that it
+does not change product names, pricing, live-billing design, or product code.
 
 ## Prompt 3: Club registration validation
 

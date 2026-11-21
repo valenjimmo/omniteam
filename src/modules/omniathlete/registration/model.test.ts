@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { defaultRegistrationConfiguration, emptyRegistrationPayload, validateRegistration } from "./model";
+import { defaultRegistrationConfiguration, emptyRegistrationPayload, isCalendarDate, validateRegistration } from "./model";
 
 describe("family registration", () => {
   it("requires household, guardian, emergency, swimmer, and consent information", () => {
@@ -36,5 +36,35 @@ describe("family registration", () => {
     const errors = validateRegistration(payload, config);
     expect(errors).toContain("Family question");
     expect(errors).toContain("Swimmer 1: Swimmer question");
+  });
+
+  it("rejects impossible calendar dates", () => {
+    expect(isCalendarDate("2024-02-29")).toBe(true);
+    expect(isCalendarDate("2023-02-29")).toBe(false);
+    expect(isCalendarDate("2024-13-01")).toBe(false);
+    const payload = emptyRegistrationPayload();
+    payload.swimmers[0].birthDate = "2023-02-29";
+    expect(validateRegistration(payload, defaultRegistrationConfiguration)).toContain(
+      "Swimmer 1 birth date must be a real calendar date",
+    );
+  });
+
+  it("validates configured programs and answer types and options", () => {
+    const payload = emptyRegistrationPayload();
+    payload.swimmers[0].requestedProgramId = "foreign";
+    payload.familyAnswers = { consent: "yes", level: "Gold", days: ["Friday"] };
+    const config = { ...defaultRegistrationConfiguration,
+      programs: [{ id: "learn", name: "Learn to swim" }],
+      questions: [
+        { id: "consent", label: "Consent", required: true, type: "yes_no" as const, appliesTo: "family" as const },
+        { id: "level", label: "Level", required: true, type: "single_select" as const, options: ["Blue"], appliesTo: "family" as const },
+        { id: "days", label: "Days", required: true, type: "multi_select" as const, options: ["Monday"], appliesTo: "family" as const },
+      ],
+    };
+    const errors = validateRegistration(payload, config);
+    expect(errors).toContain("Swimmer 1 program");
+    expect(errors).toContain("Consent");
+    expect(errors).toContain("Level");
+    expect(errors).toContain("Days");
   });
 });
